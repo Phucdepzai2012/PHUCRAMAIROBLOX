@@ -553,7 +553,7 @@ code {
   <!-- HEADER -->
   <div class="header">
     <div class="header-logo"><span class="r">ROBLOX</span><span class="a">AI</span> STUDIO</div>
-    <div style="margin-left:8px;font-size:11px;color:var(--text-dim);letter-spacing:2px;font-family:'JetBrains Mono',monospace;">v2.0 · GEMINI</div>
+    <div style="margin-left:8px;font-size:11px;color:var(--text-dim);letter-spacing:2px;font-family:'JetBrains Mono',monospace;" id="model-badge">🤖 gemini-1.5-flash-latest</div>
     <div class="header-sep"></div>
     <div class="conn-badge" onclick="togglePluginModal()" title="Hướng dẫn cài plugin">
       <div class="conn-dot" id="conn-dot"></div>
@@ -563,6 +563,7 @@ code {
       <img class="user-avatar" id="user-avatar" src="" alt="">
       <span id="user-name"></span>
     </div>
+    <button class="btn-signout" onclick="showApiKeyModal()" style="border-color:rgba(255,192,64,0.3);color:var(--gold)">🔑 API KEY</button>
     <button class="btn-signout" onclick="signOut()">ĐĂNG XUẤT</button>
   </div>
 
@@ -756,6 +757,45 @@ end</div>
   </div>
 </div>
 
+<!-- ═══════ API KEY MODAL ═══════ -->
+<div class="modal-overlay" id="apikey-modal">
+  <div class="modal-box" style="width:480px">
+    <div class="modal-header">
+      <div class="modal-title" style="color:var(--red)">⚠️ GEMINI API KEY HẾT QUOTA</div>
+      <button class="btn-modal-close" onclick="document.getElementById('apikey-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:14px;line-height:1.7;margin-bottom:20px;color:var(--text)">
+        API key hiện tại đã <strong style="color:var(--red)">hết quota free tier</strong>.<br>
+        Có 2 cách xử lý:
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
+        <a href="https://aistudio.google.com/app/apikey" target="_blank"
+           style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(0,255,224,0.07);border:1px solid var(--border-c);border-radius:8px;color:var(--cyan);text-decoration:none;font-size:13px;font-weight:600;transition:var(--transition)"
+           onmouseover="this.style.background='rgba(0,255,224,0.14)'" onmouseout="this.style.background='rgba(0,255,224,0.07)'">
+          🔑 <span><strong>Tạo API key mới miễn phí</strong><br><span style="color:var(--text-dim);font-weight:400">aistudio.google.com → Get API Key</span></span>
+        </a>
+        <a href="https://console.cloud.google.com/billing" target="_blank"
+           style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(255,192,64,0.07);border:1px solid rgba(255,192,64,0.25);border-radius:8px;color:var(--gold);text-decoration:none;font-size:13px;font-weight:600;transition:var(--transition)"
+           onmouseover="this.style.background='rgba(255,192,64,0.14)'" onmouseout="this.style.background='rgba(255,192,64,0.07)'">
+          💳 <span><strong>Bật billing để dùng không giới hạn</strong><br><span style="color:var(--text-dim);font-weight:400">Google Cloud Console → Billing</span></span>
+        </a>
+      </div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px;letter-spacing:1px;color:var(--text-dim)">DÁN API KEY MỚI VÀO ĐÂY:</div>
+      <div style="display:flex;gap:8px">
+        <input id="new-apikey-input" type="text" placeholder="AIzaSy..."
+          style="flex:1;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;outline:none"
+          onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'"
+          onkeydown="if(event.key==='Enter')saveApiKey()">
+        <button onclick="saveApiKey()" style="padding:10px 20px;background:var(--red);border:none;border-radius:8px;color:#fff;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer;letter-spacing:1px">LƯU</button>
+      </div>
+      <div style="margin-top:12px;font-size:11px;color:var(--text-dim);line-height:1.6">
+        Key được lưu cục bộ trong trình duyệt, không gửi lên server.
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -777,8 +817,18 @@ const auth = firebase.auth();
 const db = firebase.database();
 
 // ─── Gemini Config ───
-const GEMINI_KEY = "AIzaSyBJIjhoVy5vjz32ASzJ6a_2IBIDAkPnl5g";
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+const GEMINI_MODELS = [
+  "gemini-1.5-flash-latest",
+  "gemini-1.5-flash",
+  "gemini-1.5-pro-latest",
+  "gemini-2.0-flash-lite",
+];
+let currentModelIndex = 0;
+let geminiKey = localStorage.getItem('robloxai_gemini_key') || "AIzaSyBJIjhoVy5vjz32ASzJ6a_2IBIDAkPnl5g";
+
+function getGeminiURL(model) {
+  return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
+}
 
 // ─── State ───
 let currentUser = null;
@@ -947,7 +997,7 @@ async function sendToRoblox(code, type = 'script', summary = '') {
   }
 }
 
-// ─── Gemini Chat ───
+// ─── Gemini Chat (with model fallback + retry) ───
 async function callGemini(userMessage) {
   const messages = chatHistory.map(m => ({
     role: m.role === 'assistant' ? 'model' : 'user',
@@ -958,23 +1008,60 @@ async function callGemini(userMessage) {
   const body = {
     system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
     contents: messages,
-    generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 4096,
-    }
+    generationConfig: { temperature: 0.7, maxOutputTokens: 4096 }
   };
 
-  const res = await fetch(GEMINI_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error?.message || 'Gemini API error');
+  // Try each model until one works
+  for (let i = 0; i < GEMINI_MODELS.length; i++) {
+    const modelIdx = (currentModelIndex + i) % GEMINI_MODELS.length;
+    const model = GEMINI_MODELS[modelIdx];
+    try {
+      const res = await fetch(getGeminiURL(model), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const msg = data.error?.message || '';
+        const isQuota = msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED') || res.status === 429;
+        if (isQuota) {
+          showToast(`⚠️ Model ${model} hết quota, thử model khác...`);
+          continue; // try next model
+        }
+        // API key invalid
+        if (res.status === 400 || res.status === 403) {
+          showApiKeyModal();
+          throw new Error('API key không hợp lệ. Vui lòng nhập key mới.');
+        }
+        throw new Error(msg || `HTTP ${res.status}`);
+      }
+      // Success — update current model index
+      currentModelIndex = modelIdx;
+      document.getElementById('model-badge').textContent = '🤖 ' + model;
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Không có phản hồi.';
+    } catch(e) {
+      if (e.message.includes('API key')) throw e;
+      if (i === GEMINI_MODELS.length - 1) throw e;
+    }
   }
-  const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Không có phản hồi.';
+  // All models exhausted → show API key modal
+  showApiKeyModal();
+  throw new Error('Tất cả model Gemini đều hết quota free tier.\n\n👉 Vui lòng:\n1. Tạo API key mới tại https://aistudio.google.com/app/apikey\n2. Hoặc bật billing tại https://console.cloud.google.com\n3. Nhập key mới vào ô phía trên chat');
+}
+
+// ─── API Key Modal ───
+function showApiKeyModal() {
+  document.getElementById('apikey-modal').classList.add('open');
+}
+function saveApiKey() {
+  const key = document.getElementById('new-apikey-input').value.trim();
+  if (!key.startsWith('AIza')) { showToast('⚠️ Key không hợp lệ (phải bắt đầu bằng AIza)', true); return; }
+  geminiKey = key;
+  localStorage.setItem('robloxai_gemini_key', key);
+  currentModelIndex = 0;
+  document.getElementById('apikey-modal').classList.remove('open');
+  showToast('✅ Đã lưu API key mới!');
 }
 
 // ─── Send message ───
@@ -1186,6 +1273,16 @@ function escapeHtml(text) {
 // Close modal on overlay click
 document.getElementById('plugin-modal').addEventListener('click', e => {
   if (e.target === e.currentTarget) togglePluginModal();
+});
+document.getElementById('apikey-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) document.getElementById('apikey-modal').classList.remove('open');
+});
+// Auto-show API key modal if key looks default/invalid on load
+window.addEventListener('load', () => {
+  if (!localStorage.getItem('robloxai_gemini_key')) {
+    // Pre-fill with default key
+    document.getElementById('new-apikey-input').value = geminiKey;
+  }
 });
 </script>
 </body>
