@@ -3,1346 +3,806 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RobloxAI Studio — Gemini Powered</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<title>AI Studio — Gemini Powered</title>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
-
-<!-- Firebase Compat CDN -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-
 <style>
-:root {
-  --bg-deep:    #060810;
-  --bg-main:    #0b0d17;
-  --bg-card:    #111526;
-  --bg-input:   #0e1020;
-  --red:        #ff3a3a;
-  --red-glow:   rgba(255,58,58,0.35);
-  --cyan:       #00ffe0;
-  --cyan-glow:  rgba(0,255,224,0.25);
-  --gold:       #ffc040;
-  --text:       #d0d8f0;
-  --text-dim:   #5a6080;
-  --border:     rgba(255,58,58,0.2);
-  --border-c:   rgba(0,255,224,0.15);
-  --radius:     10px;
-  --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
-}
+:root{--bg:#060810;--card:#0f1122;--inp:#0b0d1a;--red:#ff3a3a;--redg:rgba(255,58,58,.3);--cyan:#00ffe0;--cyang:rgba(0,255,224,.2);--gold:#ffc040;--purple:#a78bfa;--green:#34d399;--text:#d0d8f0;--dim:#4a5070;--b:rgba(255,58,58,.18);--bc:rgba(0,255,224,.12);--t:.18s ease}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,58,58,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,58,58,.03) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0}
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* LOGIN */
+#login{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:999;background:var(--bg)}
+.lbox{width:440px;padding:52px 44px;background:var(--card);border-radius:18px;text-align:center;border:1px solid var(--b);position:relative;animation:up .5s ease both}
+.lbox::before{content:'';position:absolute;inset:-1px;border-radius:19px;background:linear-gradient(135deg,var(--red),transparent 50%,var(--cyan));opacity:.35;z-index:-1}
+.logo{font-family:'Orbitron',monospace;font-size:30px;font-weight:900;letter-spacing:3px;margin-bottom:6px}
+.logo .r{color:var(--red)}.logo .a{color:var(--cyan)}
+.lsub{font-size:11px;letter-spacing:4px;color:var(--dim);text-transform:uppercase;margin-bottom:28px}
+.ldesc{font-size:14px;line-height:1.7;margin-bottom:32px}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:14px;background:#fff;border:none;border-radius:10px;font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:#111;cursor:pointer;transition:var(--t)}
+.gbtn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.gbtn svg{width:20px;height:20px;flex-shrink:0}
+.lfooter{margin-top:18px;font-size:11px;color:var(--dim)}
 
-html, body {
-  height: 100%;
-  font-family: 'Rajdhani', sans-serif;
-  background: var(--bg-deep);
-  color: var(--text);
-  overflow: hidden;
-}
-
-/* ────────── GRID BACKGROUND ────────── */
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background-image:
-    linear-gradient(rgba(255,58,58,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,58,58,0.04) 1px, transparent 1px);
-  background-size: 40px 40px;
-  pointer-events: none; z-index: 0;
-}
-
-/* ────────── LOGIN SCREEN ────────── */
-#login-screen {
-  position: fixed; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  z-index: 1000;
-  background: var(--bg-deep);
-}
-.login-box {
-  position: relative;
-  width: 420px;
-  padding: 48px 40px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  text-align: center;
-  animation: fadeInUp 0.6s ease both;
-}
-.login-box::before {
-  content: '';
-  position: absolute; inset: -1px;
-  border-radius: 17px;
-  background: linear-gradient(135deg, var(--red) 0%, transparent 50%, var(--cyan) 100%);
-  z-index: -1; opacity: 0.4;
-}
-.login-logo {
-  font-family: 'Orbitron', monospace;
-  font-size: 28px; font-weight: 900;
-  letter-spacing: 2px; line-height: 1.2;
-  margin-bottom: 8px;
-}
-.login-logo span.r { color: var(--red); }
-.login-logo span.a { color: var(--cyan); }
-.login-sub {
-  font-size: 13px; color: var(--text-dim);
-  letter-spacing: 3px; text-transform: uppercase;
-  margin-bottom: 32px;
-}
-.login-desc {
-  font-size: 15px; color: var(--text); line-height: 1.6;
-  margin-bottom: 36px; font-weight: 500;
-}
-.btn-google {
-  display: flex; align-items: center; justify-content: center; gap: 12px;
-  width: 100%; padding: 14px 20px;
-  background: #fff; color: #1a1a2e;
-  border: none; border-radius: 8px;
-  font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700;
-  cursor: pointer; transition: var(--transition);
-  letter-spacing: 0.5px;
-}
-.btn-google:hover { background: #f0f0f0; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
-.btn-google svg { width: 20px; height: 20px; flex-shrink: 0; }
-.login-footer { margin-top: 20px; font-size: 12px; color: var(--text-dim); }
-
-/* ────────── MAIN APP LAYOUT ────────── */
-#app {
-  display: none; height: 100vh;
-  flex-direction: column; position: relative; z-index: 1;
-}
-#app.visible { display: flex; }
+/* APP */
+#app{display:none;height:100vh;flex-direction:column;position:relative;z-index:1}
+#app.on{display:flex}
 
 /* HEADER */
-.header {
-  display: flex; align-items: center; gap: 16px;
-  padding: 0 20px; height: 56px;
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-.header-logo {
-  font-family: 'Orbitron', monospace;
-  font-size: 16px; font-weight: 900; letter-spacing: 2px;
-}
-.header-logo .r { color: var(--red); }
-.header-logo .a { color: var(--cyan); }
-.header-sep { flex: 1; }
-.conn-badge {
-  display: flex; align-items: center; gap: 7px;
-  padding: 5px 12px; border-radius: 20px;
-  background: var(--bg-input); border: 1px solid var(--border-c);
-  font-size: 12px; font-weight: 600; letter-spacing: 1px;
-  cursor: pointer; transition: var(--transition);
-}
-.conn-badge:hover { border-color: var(--cyan); }
-.conn-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: var(--text-dim);
-  transition: var(--transition);
-}
-.conn-dot.connected { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); animation: pulse 2s infinite; }
-.conn-dot.waiting { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
-.user-info {
-  display: flex; align-items: center; gap: 10px;
-  padding: 4px 12px; border-radius: 20px;
-  background: var(--bg-input); border: 1px solid var(--border);
-  font-size: 13px; font-weight: 600;
-}
-.user-avatar {
-  width: 26px; height: 26px; border-radius: 50%;
-  border: 1px solid var(--red); object-fit: cover;
-}
-.btn-signout {
-  padding: 5px 14px; background: transparent;
-  border: 1px solid var(--border); border-radius: 6px;
-  color: var(--text-dim); font-family: 'Rajdhani', sans-serif;
-  font-size: 12px; font-weight: 600; cursor: pointer;
-  transition: var(--transition); letter-spacing: 1px;
-}
-.btn-signout:hover { border-color: var(--red); color: var(--red); }
+.hdr{display:flex;align-items:center;gap:10px;padding:0 16px;height:52px;background:var(--card);border-bottom:1px solid var(--b);flex-shrink:0;z-index:10}
+.hlogo{font-family:'Orbitron',monospace;font-size:13px;font-weight:900;letter-spacing:2px;white-space:nowrap}
+.hlogo .r{color:var(--red)}.hlogo .a{color:var(--cyan)}
+.hsep{flex:1}
+.mbadge{font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace;letter-spacing:1px;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis}
+.hbtn{padding:4px 10px;background:transparent;border:1px solid var(--b);border-radius:6px;color:var(--dim);font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;cursor:pointer;transition:var(--t);letter-spacing:1px;white-space:nowrap}
+.hbtn:hover{border-color:var(--red);color:var(--red)}
+.hbtn.gold{border-color:rgba(255,192,64,.3);color:var(--gold)}
+.hbtn.gold:hover{border-color:var(--gold);background:rgba(255,192,64,.08)}
+.uinfo{display:flex;align-items:center;gap:7px;padding:3px 9px;border-radius:20px;background:var(--inp);border:1px solid var(--b);font-size:11px;font-weight:600}
+.uavt{width:22px;height:22px;border-radius:50%;border:1px solid var(--red);object-fit:cover}
+.conn{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;background:var(--inp);border:1px solid var(--bc);font-size:10px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:var(--t)}
+.conn:hover{border-color:var(--cyan)}
+.cdot{width:6px;height:6px;border-radius:50%;background:var(--dim);transition:var(--t)}
+.cdot.ok{background:var(--cyan);box-shadow:0 0 7px var(--cyan);animation:pulse 2s infinite}
+.cdot.wait{background:var(--gold);box-shadow:0 0 5px var(--gold)}
+
+/* TABS */
+.tabs{display:flex;align-items:center;gap:3px;padding:6px 16px;background:var(--card);border-bottom:1px solid var(--b);flex-shrink:0}
+.tab{display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;border:1px solid transparent;font-size:12px;font-weight:700;letter-spacing:.5px;cursor:pointer;transition:var(--t);color:var(--dim);user-select:none}
+.tab:hover{color:var(--text);border-color:var(--b)}
+.tab.roblox.active{background:rgba(255,58,58,.14);border-color:var(--red);color:var(--red)}
+.tab.slide.active{background:rgba(167,139,250,.13);border-color:var(--purple);color:var(--purple)}
+.tab.docx.active{background:rgba(52,211,153,.12);border-color:var(--green);color:var(--green)}
+.tab.ai.active{background:rgba(0,255,224,.1);border-color:var(--cyan);color:var(--cyan)}
 
 /* BODY */
-.body-wrap {
-  display: flex; flex: 1; overflow: hidden;
-}
+.body{display:flex;flex:1;overflow:hidden}
 
 /* SIDEBAR */
-.sidebar {
-  width: 280px; flex-shrink: 0;
-  background: var(--bg-card);
-  border-right: 1px solid var(--border);
-  display: flex; flex-direction: column;
-  overflow: hidden;
-}
-.sidebar-section {
-  padding: 16px;
-  border-bottom: 1px solid var(--border);
-}
-.sidebar-title {
-  font-size: 10px; font-weight: 700;
-  letter-spacing: 2.5px; text-transform: uppercase;
-  color: var(--text-dim); margin-bottom: 12px;
-}
-.plugin-id-box {
-  background: var(--bg-input);
-  border: 1px solid var(--border-c);
-  border-radius: 8px; padding: 10px 12px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px; color: var(--cyan);
-  word-break: break-all; line-height: 1.5;
-}
-.uid-label { font-size: 10px; color: var(--text-dim); margin-bottom: 4px; }
-.btn-copy {
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  width: 100%; margin-top: 8px; padding: 7px;
-  background: rgba(0,255,224,0.08);
-  border: 1px solid var(--border-c); border-radius: 6px;
-  color: var(--cyan); font-family: 'Rajdhani', sans-serif;
-  font-size: 12px; font-weight: 700; cursor: pointer;
-  transition: var(--transition); letter-spacing: 1px;
-}
-.btn-copy:hover { background: rgba(0,255,224,0.15); }
-.btn-plugin {
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  width: 100%; margin-top: 8px; padding: 8px;
-  background: rgba(255,192,64,0.08);
-  border: 1px solid rgba(255,192,64,0.25); border-radius: 6px;
-  color: var(--gold); font-family: 'Rajdhani', sans-serif;
-  font-size: 12px; font-weight: 700; cursor: pointer;
-  transition: var(--transition); letter-spacing: 1px;
-}
-.btn-plugin:hover { background: rgba(255,192,64,0.18); }
+.sidebar{width:260px;flex-shrink:0;background:var(--card);border-right:1px solid var(--b);display:flex;flex-direction:column;overflow:hidden}
+.sbsec{padding:12px 14px;border-bottom:1px solid var(--b)}
+.sbtitle{font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--dim);margin-bottom:9px}
+.idbox{background:var(--inp);border:1px solid var(--bc);border-radius:7px;padding:8px 10px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--cyan);word-break:break-all;line-height:1.5}
+.sbtn{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;margin-top:5px;padding:6px;border-radius:6px;font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;cursor:pointer;transition:var(--t);letter-spacing:1px;border:1px solid}
+.sbtn.c{background:rgba(0,255,224,.05);border-color:var(--bc);color:var(--cyan)}
+.sbtn.c:hover{background:rgba(0,255,224,.13)}
+.sbtn.g{background:rgba(255,192,64,.05);border-color:rgba(255,192,64,.22);color:var(--gold)}
+.sbtn.g:hover{background:rgba(255,192,64,.13)}
+.sbtn.r{background:rgba(255,58,58,.05);border-color:rgba(255,58,58,.22);color:var(--red)}
+.sbtn.r:hover{background:rgba(255,58,58,.13)}
+.sbtn.p{background:rgba(167,139,250,.05);border-color:rgba(167,139,250,.22);color:var(--purple)}
+.sbtn.p:hover{background:rgba(167,139,250,.13)}
+.qlist{flex:1;overflow-y:auto;padding:9px 12px;display:flex;flex-direction:column;gap:6px}
+.qi{padding:7px 9px;border-radius:7px;background:var(--inp);border:1px solid var(--b);font-size:10px;line-height:1.4}
+.qi.pending{border-color:rgba(255,192,64,.3)}.qi.done{border-color:rgba(0,255,224,.18);opacity:.55}.qi.error{border-color:rgba(255,58,58,.35)}
+.qit{font-size:8px;letter-spacing:2px;font-weight:700;text-transform:uppercase;margin-bottom:2px}
+.qit.pending{color:var(--gold)}.qit.done{color:var(--cyan)}.qit.error{color:var(--red)}
+.qitxt{color:var(--text);font-family:'JetBrains Mono',monospace;font-size:9px}
+.qempty{text-align:center;color:var(--dim);font-size:11px;padding:18px 0}
 
-.queue-list {
-  flex: 1; overflow-y: auto; padding: 12px 16px;
-  display: flex; flex-direction: column; gap: 8px;
-}
-.queue-item {
-  padding: 9px 12px; border-radius: 8px;
-  background: var(--bg-input); border: 1px solid var(--border);
-  font-size: 12px; line-height: 1.4;
-  transition: var(--transition);
-}
-.queue-item.pending { border-color: rgba(255,192,64,0.3); }
-.queue-item.done { border-color: rgba(0,255,224,0.2); opacity: 0.6; }
-.queue-item.error { border-color: rgba(255,58,58,0.4); }
-.qi-type {
-  font-size: 9px; letter-spacing: 2px; font-weight: 700;
-  text-transform: uppercase; margin-bottom: 4px;
-}
-.qi-type.pending { color: var(--gold); }
-.qi-type.done { color: var(--cyan); }
-.qi-type.error { color: var(--red); }
-.qi-text { color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 10px; }
-.queue-empty { text-align: center; color: var(--text-dim); font-size: 12px; padding: 24px 0; }
+/* CHAT */
+.chat{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.msgs{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:16px;scroll-behavior:smooth}
+.msgs::-webkit-scrollbar{width:3px}
+.msgs::-webkit-scrollbar-thumb{background:var(--b);border-radius:2px}
+.msg{display:flex;gap:10px;animation:up .25s ease both}
+.msg.user{flex-direction:row-reverse}
+.mavt{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:700;font-family:'Orbitron',monospace}
+.msg.ai .mavt{background:linear-gradient(135deg,var(--red),#ff6060);color:#fff}
+.msg.user .mavt{background:linear-gradient(135deg,#1a2040,#252860);border:1px solid var(--b);overflow:hidden}
+.msg.user .mavt img{width:100%;height:100%;object-fit:cover}
+.mcnt{max-width:80%;display:flex;flex-direction:column;gap:4px}
+.mbub{padding:11px 15px;border-radius:11px;font-size:13px;line-height:1.65;font-weight:500}
+.msg.ai .mbub{background:var(--card);border:1px solid var(--b);border-top-left-radius:3px}
+.msg.user .mbub{background:linear-gradient(135deg,#191f3a,#1e2550);border:1px solid rgba(100,120,255,.2);border-top-right-radius:3px;text-align:right}
+.mtime{font-size:9px;color:var(--dim);padding:0 3px}
+.msg.user .mtime{text-align:right}
 
-/* CHAT AREA */
-.chat-area {
-  flex: 1; display: flex; flex-direction: column;
-  overflow: hidden;
-}
-.chat-messages {
-  flex: 1; overflow-y: auto; padding: 24px;
-  display: flex; flex-direction: column; gap: 20px;
-  scroll-behavior: smooth;
-}
-.chat-messages::-webkit-scrollbar { width: 4px; }
-.chat-messages::-webkit-scrollbar-track { background: transparent; }
-.chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+/* CODE */
+.cblock{margin:7px 0;border-radius:8px;overflow:hidden;border:1px solid var(--bc)}
+.chdr{display:flex;align-items:center;justify-content:space-between;padding:6px 11px;background:rgba(0,255,224,.04);border-bottom:1px solid var(--bc)}
+.clang{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan)}
+.cacts{display:flex;gap:4px}
+.cact{padding:2px 8px;border-radius:4px;border:1px solid;font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:700;cursor:pointer;transition:var(--t);letter-spacing:.5px}
+.cact.rb{border-color:rgba(255,58,58,.4);color:var(--red);background:rgba(255,58,58,.07)}.cact.rb:hover{background:rgba(255,58,58,.18)}
+.cact.cp{border-color:var(--bc);color:var(--cyan);background:rgba(0,255,224,.04)}.cact.cp:hover{background:rgba(0,255,224,.12)}
+.cact.dl{border-color:rgba(52,211,153,.35);color:var(--green);background:rgba(52,211,153,.05)}.cact.dl:hover{background:rgba(52,211,153,.14)}
+.cact.pv{border-color:rgba(167,139,250,.35);color:var(--purple);background:rgba(167,139,250,.05)}.cact.pv:hover{background:rgba(167,139,250,.14)}
+.cbody{background:#060912;padding:13px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;color:#c5cff0;overflow-x:auto;max-height:300px;overflow-y:auto;white-space:pre}
+.cbody::-webkit-scrollbar{width:3px;height:3px}
+.cbody::-webkit-scrollbar-thumb{background:var(--bc)}
+code{font-family:'JetBrains Mono',monospace;background:rgba(0,255,224,.08);border:1px solid var(--bc);color:var(--cyan);font-size:10px;padding:1px 4px;border-radius:3px}
 
-/* Messages */
-.msg { display: flex; gap: 14px; animation: fadeInUp 0.3s ease both; }
-.msg.user { flex-direction: row-reverse; }
-.msg-avatar {
-  width: 36px; height: 36px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; font-size: 14px; font-weight: 700;
-}
-.msg.assistant .msg-avatar {
-  background: linear-gradient(135deg, var(--red), #ff6060);
-  font-family: 'Orbitron', monospace; font-size: 10px;
-  color: #fff; letter-spacing: 0;
-}
-.msg.user .msg-avatar {
-  background: linear-gradient(135deg, #1e2640, #2a3060);
-  border: 1px solid var(--border);
-  overflow: hidden;
-}
-.msg.user .msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.msg-content { max-width: 75%; display: flex; flex-direction: column; gap: 6px; }
-.msg-bubble {
-  padding: 14px 18px;
-  border-radius: 12px;
-  font-size: 15px; line-height: 1.65; font-weight: 500;
-}
-.msg.assistant .msg-bubble {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-top-left-radius: 3px;
-  color: var(--text);
-}
-.msg.user .msg-bubble {
-  background: linear-gradient(135deg, #1a2040, #1e2850);
-  border: 1px solid rgba(100,120,255,0.2);
-  border-top-right-radius: 3px;
-  color: var(--text);
-  text-align: right;
-}
-.msg-time { font-size: 10px; color: var(--text-dim); letter-spacing: 0.5px; padding: 0 4px; }
-.msg.user .msg-time { text-align: right; }
+/* TYPING */
+.typing{display:flex;align-items:center;gap:4px;padding:10px 14px;background:var(--card);border:1px solid var(--b);border-radius:11px;border-top-left-radius:3px;width:fit-content}
+.td{width:5px;height:5px;border-radius:50%;background:var(--red);opacity:.7;animation:bounce 1.4s infinite ease-in-out both}
+.td:nth-child(2){animation-delay:.2s}.td:nth-child(3){animation-delay:.4s}
 
-/* Code blocks */
-.code-block {
-  margin: 10px 0;
-  border-radius: 8px; overflow: hidden;
-  border: 1px solid var(--border-c);
-}
-.code-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 14px;
-  background: rgba(0,255,224,0.06);
-  border-bottom: 1px solid var(--border-c);
-}
-.code-lang {
-  font-size: 10px; font-weight: 700; letter-spacing: 2px;
-  text-transform: uppercase; color: var(--cyan);
-}
-.code-actions { display: flex; gap: 6px; }
-.btn-code-action {
-  padding: 3px 10px; border-radius: 4px;
-  border: 1px solid; font-family: 'Rajdhani', sans-serif;
-  font-size: 11px; font-weight: 700; cursor: pointer;
-  transition: var(--transition); letter-spacing: 1px;
-}
-.btn-send-roblox {
-  border-color: rgba(255,58,58,0.4); color: var(--red);
-  background: rgba(255,58,58,0.08);
-}
-.btn-send-roblox:hover { background: rgba(255,58,58,0.2); }
-.btn-copy-code {
-  border-color: var(--border-c); color: var(--cyan);
-  background: rgba(0,255,224,0.05);
-}
-.btn-copy-code:hover { background: rgba(0,255,224,0.12); }
-.code-body {
-  background: #070912; padding: 16px;
-  font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
-  line-height: 1.7; color: #c8d0f0;
-  overflow-x: auto; max-height: 340px; overflow-y: auto;
-  white-space: pre;
-}
-.code-body::-webkit-scrollbar { width: 3px; height: 3px; }
-.code-body::-webkit-scrollbar-thumb { background: var(--border-c); }
+/* PREVIEW PANEL */
+.pvpanel{width:370px;flex-shrink:0;background:var(--card);border-left:1px solid var(--b);display:flex;flex-direction:column;overflow:hidden}
+.pvpanel.hidden{display:none}
+.pvhdr{padding:10px 14px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.pvtitle{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--dim);text-transform:uppercase}
+.pvbtns{display:flex;gap:5px}
+.pvempty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--dim)}
+.pvempty-icon{font-size:32px;opacity:.35}
 
-/* Inline code */
-code {
-  font-family: 'JetBrains Mono', monospace;
-  background: rgba(0,255,224,0.08);
-  border: 1px solid var(--border-c);
-  color: var(--cyan); font-size: 12px;
-  padding: 1px 5px; border-radius: 4px;
-}
+/* INPUT AREA */
+.iarea{padding:10px 16px;border-top:1px solid var(--b);background:var(--card);flex-shrink:0}
+.ibar-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.tinfo{font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace}
+.irow{display:flex;gap:7px;align-items:flex-end}
+.ibox{flex:1;background:var(--inp);border:1px solid var(--b);border-radius:9px;padding:9px 13px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:500;resize:none;min-height:42px;max-height:120px;outline:none;transition:var(--t);line-height:1.5}
+.ibox::placeholder{color:var(--dim)}
+.ibox:focus{border-color:var(--red);box-shadow:0 0 0 3px var(--redg)}
+.isend{width:42px;height:42px;flex-shrink:0;background:var(--red);border:none;border-radius:9px;color:#fff;cursor:pointer;transition:var(--t);display:flex;align-items:center;justify-content:center}
+.isend:hover{background:#ff5252;transform:scale(1.05);box-shadow:0 4px 16px var(--redg)}
+.isend:disabled{background:#2a1a1a;cursor:not-allowed;transform:none}
+.hints{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:7px}
+.hint{padding:3px 8px;border-radius:20px;background:var(--inp);border:1px solid var(--b);font-size:9px;font-weight:600;color:var(--dim);cursor:pointer;transition:var(--t)}
+.hint:hover{border-color:var(--red);color:var(--red)}
 
-/* Typing indicator */
-.typing-indicator {
-  display: flex; align-items: center; gap: 5px;
-  padding: 14px 18px;
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: 12px; border-top-left-radius: 3px;
-  width: fit-content;
-}
-.typing-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--red); opacity: 0.7;
-  animation: typingBounce 1.4s infinite ease-in-out both;
-}
-.typing-dot:nth-child(2) { animation-delay: 0.2s; }
-.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+/* WELCOME */
+.welcome{text-align:center;padding:28px 20px;animation:up .4s ease both}
+.wicon{font-size:40px;margin-bottom:12px;animation:float 3s ease-in-out infinite;display:block}
+.wtitle{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;margin-bottom:7px}
+.wdesc{font-size:12px;color:var(--dim);line-height:1.7;max-width:460px;margin:0 auto}
 
-/* CHAT INPUT */
-.chat-input-area {
-  padding: 16px 24px;
-  border-top: 1px solid var(--border);
-  background: var(--bg-card);
-}
-.input-row {
-  display: flex; gap: 10px; align-items: flex-end;
-}
-.input-box {
-  flex: 1;
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: 10px; padding: 12px 16px;
-  color: var(--text); font-family: 'Rajdhani', sans-serif;
-  font-size: 15px; font-weight: 500;
-  resize: none; min-height: 48px; max-height: 140px;
-  transition: var(--transition); outline: none;
-  line-height: 1.5;
-}
-.input-box::placeholder { color: var(--text-dim); }
-.input-box:focus { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-glow); }
-.btn-send {
-  width: 48px; height: 48px; flex-shrink: 0;
-  background: var(--red); border: none; border-radius: 10px;
-  color: #fff; cursor: pointer; transition: var(--transition);
-  display: flex; align-items: center; justify-content: center;
-}
-.btn-send:hover { background: #ff5555; transform: scale(1.05); box-shadow: 0 4px 20px var(--red-glow); }
-.btn-send:disabled { background: #2a1a1a; cursor: not-allowed; transform: none; }
-.btn-send svg { width: 20px; height: 20px; }
+/* MODALS */
+.overlay{position:fixed;inset:0;background:rgba(6,8,16,.88);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:999;opacity:0;pointer-events:none;transition:opacity .2s}
+.overlay.open{opacity:1;pointer-events:all}
+.mbox{background:var(--card);border:1px solid var(--b);border-radius:14px;overflow:hidden;transform:translateY(16px);transition:transform .2s;max-height:90vh;display:flex;flex-direction:column}
+.overlay.open .mbox{transform:translateY(0)}
+.mhdr{padding:14px 20px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.mtitle{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;letter-spacing:2px}
+.mclose{width:24px;height:24px;background:var(--inp);border:1px solid var(--b);border-radius:50%;color:var(--dim);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:var(--t)}
+.mclose:hover{border-color:var(--red);color:var(--red)}
+.mbody{padding:20px;overflow-y:auto;flex:1;font-size:13px;line-height:1.7}
+.mbody::-webkit-scrollbar{width:3px}
+.mbody::-webkit-scrollbar-thumb{background:var(--b)}
+.step{display:flex;gap:10px;margin-bottom:16px}
+.snum{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--red),#ff6060);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;font-family:'Orbitron',monospace;margin-top:2px}
+.stitle{font-size:13px;font-weight:700;margin-bottom:4px}
+.sdesc{font-size:11px;color:var(--dim);line-height:1.6;margin-bottom:5px}
+.warning{padding:10px 12px;background:rgba(255,192,64,.07);border:1px solid rgba(255,192,64,.22);border-radius:7px;font-size:11px;color:var(--gold);line-height:1.6}
+.key-err{font-size:10px;font-family:'JetBrains Mono',monospace;line-height:1.5;padding:8px 10px;background:rgba(255,58,58,.08);border:1px solid rgba(255,58,58,.2);border-radius:6px;color:var(--red);white-space:pre-wrap;display:none;margin-bottom:12px}
+.kinput{width:100%;background:var(--inp);border:1px solid var(--b);border-radius:7px;padding:9px 12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;outline:none;transition:var(--t)}
+.kinput:focus{border-color:var(--cyan)}
+.krow{display:flex;gap:7px;margin-top:7px}
+.ksave{padding:9px 16px;background:var(--red);border:none;border-radius:7px;color:#fff;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;cursor:pointer;letter-spacing:1px;transition:var(--t);white-space:nowrap}
+.ksave:hover{background:#ff5252}
+.klink{display:flex;align-items:center;gap:9px;padding:10px 13px;border-radius:8px;text-decoration:none;font-size:11px;font-weight:600;transition:var(--t);margin-bottom:7px;border:1px solid}
+.klink.c{background:rgba(0,255,224,.05);border-color:var(--bc);color:var(--cyan)}.klink.c:hover{background:rgba(0,255,224,.12)}
+.klink.g{background:rgba(255,192,64,.05);border-color:rgba(255,192,64,.22);color:var(--gold)}.klink.g:hover{background:rgba(255,192,64,.12)}
+.auto-btn{display:flex;align-items:center;gap:9px;width:100%;padding:11px 14px;background:rgba(0,255,224,.08);border:1px solid var(--bc);border-radius:8px;color:var(--cyan);font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:var(--t);letter-spacing:1px}
+.auto-btn:hover{background:rgba(0,255,224,.16)}
 
-.input-hints {
-  display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;
-}
-.hint-chip {
-  padding: 4px 10px; border-radius: 20px;
-  background: var(--bg-input); border: 1px solid var(--border);
-  font-size: 11px; font-weight: 600; color: var(--text-dim);
-  cursor: pointer; transition: var(--transition); letter-spacing: 0.3px;
-}
-.hint-chip:hover { border-color: var(--red); color: var(--red); }
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;padding:10px 16px;border-radius:9px;background:var(--card);border:1px solid var(--bc);font-size:11px;font-weight:600;color:var(--cyan);transform:translateY(60px);opacity:0;transition:all .26s cubic-bezier(.4,0,.2,1);z-index:9999;max-width:320px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.err{border-color:var(--red);color:var(--red)}
 
-/* MODAL */
-.modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(6,8,16,0.85); backdrop-filter: blur(4px);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 999; opacity: 0; pointer-events: none;
-  transition: opacity 0.25s;
-}
-.modal-overlay.open { opacity: 1; pointer-events: all; }
-.modal-box {
-  width: 680px; max-height: 90vh;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 14px; overflow: hidden;
-  transform: translateY(20px); transition: transform 0.25s;
-}
-.modal-overlay.open .modal-box { transform: translateY(0); }
-.modal-header {
-  padding: 18px 24px;
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between;
-}
-.modal-title {
-  font-family: 'Orbitron', monospace;
-  font-size: 14px; font-weight: 700; color: var(--gold);
-  letter-spacing: 2px;
-}
-.btn-modal-close {
-  width: 28px; height: 28px;
-  background: var(--bg-input); border: 1px solid var(--border);
-  border-radius: 50%; color: var(--text-dim); cursor: pointer;
-  font-size: 16px; display: flex; align-items: center; justify-content: center;
-  transition: var(--transition);
-}
-.btn-modal-close:hover { border-color: var(--red); color: var(--red); }
-.modal-body { padding: 24px; overflow-y: auto; max-height: calc(90vh - 68px); }
-.modal-body::-webkit-scrollbar { width: 3px; }
-.modal-body::-webkit-scrollbar-thumb { background: var(--border); }
-.plugin-step {
-  display: flex; gap: 14px; margin-bottom: 20px;
-}
-.step-num {
-  width: 28px; height: 28px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--red), #ff6060);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 700; flex-shrink: 0;
-  font-family: 'Orbitron', monospace;
-}
-.step-content { flex: 1; }
-.step-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
-.step-desc { font-size: 13px; color: var(--text-dim); line-height: 1.6; margin-bottom: 8px; }
+/* ANIMS */
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes bounce{0%,80%,100%{transform:scale(.8);opacity:.4}40%{transform:scale(1.2);opacity:1}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 
-/* Send to Roblox Toast */
-.toast {
-  position: fixed; bottom: 24px; right: 24px;
-  padding: 12px 20px; border-radius: 10px;
-  background: var(--bg-card); border: 1px solid var(--border-c);
-  font-size: 13px; font-weight: 600; color: var(--cyan);
-  transform: translateY(80px); opacity: 0;
-  transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-  z-index: 9999;
-}
-.toast.show { transform: translateY(0); opacity: 1; }
-.toast.error { border-color: var(--red); color: var(--red); }
-
-/* Welcome message */
-.welcome-msg {
-  text-align: center; padding: 40px 20px;
-  animation: fadeInUp 0.5s ease both;
-}
-.welcome-icon {
-  font-size: 48px; margin-bottom: 16px;
-  animation: float 3s ease-in-out infinite;
-}
-.welcome-title {
-  font-family: 'Orbitron', monospace; font-size: 22px;
-  font-weight: 900; margin-bottom: 10px;
-}
-.welcome-title .r { color: var(--red); }
-.welcome-title .a { color: var(--cyan); }
-.welcome-desc { font-size: 15px; color: var(--text-dim); line-height: 1.7; max-width: 500px; margin: 0 auto; }
-
-/* Animations */
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-@keyframes typingBounce {
-  0%, 80%, 100% { transform: scale(0.8); opacity: 0.4; }
-  40% { transform: scale(1.2); opacity: 1; }
-}
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-/* Roblox Syntax Highlight */
-.kw { color: #ff79c6; }
-.fn { color: #8be9fd; }
-.str { color: #f1fa8c; }
-.num { color: #bd93f9; }
-.cmt { color: #6272a4; font-style: italic; }
-.var { color: #50fa7b; }
-.prop { color: #ffb86c; }
-
-/* Scrollbar global */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,58,58,0.2); border-radius: 2px; }
-
-/* Responsive */
-@media (max-width: 768px) {
-  .sidebar { display: none; }
-  .modal-box { width: 95vw; }
-}
+/* SYNTAX */
+.kw{color:#ff79c6}.str{color:#f1fa8c}.num{color:#bd93f9}.cmt{color:#6272a4;font-style:italic}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,58,58,.18);border-radius:2px}
+@media(max-width:768px){.sidebar,.pvpanel{display:none}}
 </style>
 </head>
 <body>
 
-<!-- ═══════ LOGIN SCREEN ═══════ -->
-<div id="login-screen">
-  <div class="login-box">
-    <div class="login-logo"><span class="r">ROBLOX</span><span class="a">AI</span></div>
-    <div class="login-sub">Studio Assistant</div>
-    <div class="login-desc">
-      Trợ lý AI thông minh giúp bạn tạo game Roblox.<br>
-      Viết script, tạo model, chỉnh sửa workspace — chỉ cần một câu lệnh.
-    </div>
-    <button class="btn-google" onclick="signInWithGoogle()">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-      </svg>
+<!-- LOGIN -->
+<div id="login">
+  <div class="lbox">
+    <div class="logo"><span class="r">AI</span><span class="a">STUDIO</span></div>
+    <div class="lsub">Gemini Powered · Multi Mode</div>
+    <div class="ldesc">🎮 Roblox Studio &nbsp;·&nbsp; 📊 Slide &nbsp;·&nbsp; 📄 Word/DOCX<br>Tất cả bằng AI — một câu lệnh là xong</div>
+    <button class="gbtn" onclick="loginGoogle()">
+      <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
       Đăng nhập với Google
     </button>
-    <div class="login-footer">🔒 Bảo mật bởi Firebase Auth · Dữ liệu mã hóa end-to-end</div>
+    <div class="lfooter">🔒 Firebase Auth · Bảo mật end-to-end</div>
   </div>
 </div>
 
-<!-- ═══════ MAIN APP ═══════ -->
+<!-- APP -->
 <div id="app">
-  <!-- HEADER -->
-  <div class="header">
-    <div class="header-logo"><span class="r">ROBLOX</span><span class="a">AI</span> STUDIO</div>
-    <div style="margin-left:8px;font-size:11px;color:var(--text-dim);letter-spacing:2px;font-family:'JetBrains Mono',monospace;" id="model-badge">🤖 gemini-2.5-flash</div>
-    <div class="header-sep"></div>
-    <div class="conn-badge" onclick="togglePluginModal()" title="Hướng dẫn cài plugin">
-      <div class="conn-dot" id="conn-dot"></div>
-      <span id="conn-label">PLUGIN: CHỜ KẾT NỐI</span>
+  <div class="hdr">
+    <div class="hlogo"><span class="r">AI</span><span class="a">STUDIO</span></div>
+    <div class="mbadge" id="mbadge">🤖 —</div>
+    <div class="hsep"></div>
+    <div class="conn" id="conn-btn" onclick="openModal('plugin-modal')">
+      <div class="cdot wait" id="cdot"></div>
+      <span id="clabel">PLUGIN</span>
     </div>
-    <div class="user-info" id="user-info" style="display:none">
-      <img class="user-avatar" id="user-avatar" src="" alt="">
-      <span id="user-name"></span>
+    <button class="hbtn gold" onclick="openApiKeyModal()">🔑 API KEY</button>
+    <div class="uinfo" id="uinfo" style="display:none">
+      <img class="uavt" id="uavt" src="" alt="">
+      <span id="uname"></span>
     </div>
-    <button class="btn-signout" onclick="showApiKeyModal()" style="border-color:rgba(255,192,64,0.3);color:var(--gold)">🔑 API KEY</button>
-    <button class="btn-signout" onclick="signOut()">ĐĂNG XUẤT</button>
+    <button class="hbtn" onclick="doSignOut()">ĐĂNG XUẤT</button>
   </div>
 
-  <!-- BODY -->
-  <div class="body-wrap">
+  <div class="tabs">
+    <div class="tab roblox active" onclick="setMode('roblox')" id="tab-roblox">🎮 ROBLOX</div>
+    <div class="tab slide" onclick="setMode('slide')" id="tab-slide">📊 SLIDE</div>
+    <div class="tab docx" onclick="setMode('docx')" id="tab-docx">📄 WORD</div>
+    <div class="tab ai" onclick="setMode('ai')" id="tab-ai">✨ AI CHAT</div>
+  </div>
+
+  <div class="body">
     <!-- SIDEBAR -->
     <div class="sidebar">
-      <!-- Plugin ID -->
-      <div class="sidebar-section">
-        <div class="sidebar-title">🔗 Kết nối Plugin</div>
-        <div class="uid-label">User ID của bạn (dán vào plugin Roblox):</div>
-        <div class="plugin-id-box" id="uid-display">—</div>
-        <button class="btn-copy" onclick="copyUID()">📋 Copy ID</button>
-        <button class="btn-plugin" onclick="togglePluginModal()">📦 Tải Plugin Roblox</button>
+      <!-- Roblox section -->
+      <div class="sbsec" id="sb-roblox">
+        <div class="sbtitle">🔗 Kết nối Plugin</div>
+        <div style="font-size:8px;color:var(--dim);margin-bottom:3px">User ID (dán vào plugin):</div>
+        <div class="idbox" id="uid-box">—</div>
+        <button class="sbtn c" onclick="copyUID()">📋 Copy ID</button>
+        <button class="sbtn g" onclick="downloadPlugin()">⬇️ Tải Plugin .lua</button>
+        <button class="sbtn r" onclick="openModal('plugin-modal')">📖 Hướng dẫn cài</button>
       </div>
-      <!-- Command Queue -->
-      <div class="sidebar-section" style="border-bottom:none;padding-bottom:8px;">
-        <div class="sidebar-title">⚡ Hàng đợi lệnh</div>
+      <!-- Slide section -->
+      <div class="sbsec" id="sb-slide" style="display:none">
+        <div class="sbtitle">📊 Slide Tools</div>
+        <button class="sbtn p" onclick="downloadSlide()">⬇️ Tải slide .html</button>
+        <button class="sbtn c" onclick="previewSlide()">👁 Xem preview</button>
+        <button class="sbtn g" onclick="openModal('slide-tips')">💡 Gợi ý câu lệnh</button>
       </div>
-      <div class="queue-list" id="queue-list">
-        <div class="queue-empty">Chưa có lệnh nào được gửi</div>
+      <!-- Docx section -->
+      <div class="sbsec" id="sb-docx" style="display:none">
+        <div class="sbtitle">📄 Word Tools</div>
+        <button class="sbtn p" onclick="downloadDocx()">⬇️ Tải file .doc</button>
+        <button class="sbtn c" onclick="copyDocx()">📋 Copy HTML</button>
+        <button class="sbtn g" onclick="openModal('docx-tips')">💡 Gợi ý câu lệnh</button>
       </div>
+      <!-- AI section -->
+      <div class="sbsec" id="sb-ai" style="display:none">
+        <div class="sbtitle">✨ AI Tools</div>
+        <button class="sbtn c" onclick="exportChat()">⬇️ Xuất chat .txt</button>
+      </div>
+      <!-- Queue -->
+      <div class="sbsec" style="border-bottom:none;padding-bottom:5px">
+        <div class="sbtitle" id="queue-title">⚡ Hàng đợi lệnh</div>
+      </div>
+      <div class="qlist" id="qlist"><div class="qempty">Chưa có lệnh nào</div></div>
     </div>
 
-    <!-- CHAT AREA -->
-    <div class="chat-area">
-      <div class="chat-messages" id="chat-messages">
-        <div class="welcome-msg">
-          <div class="welcome-icon">🎮</div>
-          <div class="welcome-title"><span class="r">ROBLOX</span><span class="a">AI</span> STUDIO</div>
-          <div class="welcome-desc">
-            Xin chào! Tôi là trợ lý AI được tích hợp Gemini giúp bạn lập trình và thiết kế game Roblox. Hãy mô tả điều bạn muốn tạo!
-          </div>
+    <!-- CHAT -->
+    <div class="chat">
+      <div class="msgs" id="msgs">
+        <div class="welcome" id="welcome">
+          <span class="wicon" id="wicon">🎮</span>
+          <div class="wtitle"><span class="r" id="wtR">ROBLOX</span><span class="a" id="wtA">AI</span></div>
+          <div class="wdesc" id="wdesc">Mô tả điều bạn muốn tạo trong Roblox — AI sẽ viết code Luau và gửi thẳng vào Studio!</div>
         </div>
       </div>
-
-      <!-- INPUT AREA -->
-      <div class="chat-input-area">
-        <div class="input-hints">
-          <span class="hint-chip" onclick="useHint(this)">🧱 Tạo một ngôi nhà</span>
-          <span class="hint-chip" onclick="useHint(this)">⚔️ Script nhân vật chiến đấu</span>
-          <span class="hint-chip" onclick="useHint(this)">💰 Hệ thống tiền tệ</span>
-          <span class="hint-chip" onclick="useHint(this)">🚗 Xe ô tô có thể lái</span>
-          <span class="hint-chip" onclick="useHint(this)">🌟 Hiệu ứng particle</span>
-          <span class="hint-chip" onclick="useHint(this)">📦 Tạo inventory</span>
+      <div class="iarea">
+        <div class="ibar-top">
+          <div class="tinfo">💬 LS: <span id="hcount">0</span> tin · <span id="mbadge2">—</span></div>
+          <button onclick="clearHistory()" style="padding:2px 8px;background:transparent;border:1px solid var(--b);border-radius:4px;color:var(--dim);font-size:9px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1px" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--b)';this.style.color='var(--dim)'">🗑 XÓA</button>
         </div>
-        <div class="input-row">
-          <textarea
-            id="msg-input"
-            class="input-box"
-            placeholder="Mô tả điều bạn muốn làm trong Roblox... (Shift+Enter = xuống dòng)"
-            rows="1"
-            onkeydown="handleKey(event)"
-            oninput="autoResize(this)"
-          ></textarea>
-          <button class="btn-send" id="btn-send" onclick="sendMessage()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <line x1="22" y1="2" x2="11" y2="13"></line>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-            </svg>
+        <div class="hints" id="hints"></div>
+        <div class="irow">
+          <textarea id="inp" class="ibox" placeholder="Nhập yêu cầu..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <button class="isend" id="sendbtn" onclick="sendMsg()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="17" height="17"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
         </div>
       </div>
     </div>
+
+    <!-- PREVIEW -->
+    <div class="pvpanel hidden" id="pvpanel">
+      <div class="pvhdr">
+        <div class="pvtitle" id="pvtitle">PREVIEW</div>
+        <div class="pvbtns">
+          <button class="hbtn" onclick="downloadPreview()" style="font-size:9px">⬇️</button>
+          <button class="hbtn" onclick="closePv()" style="font-size:9px">✕</button>
+        </div>
+      </div>
+      <div id="pvcnt" style="flex:1;overflow:hidden;background:#fff;position:relative">
+        <div class="pvempty"><div class="pvempty-icon">👁</div><div style="font-size:11px;color:var(--dim)">Chưa có preview</div></div>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- ═══════ PLUGIN MODAL ═══════ -->
-<div class="modal-overlay" id="plugin-modal">
-  <div class="modal-box">
-    <div class="modal-header">
-      <div class="modal-title">📦 HƯỚNG DẪN CÀI PLUGIN ROBLOX</div>
-      <button class="btn-modal-close" onclick="togglePluginModal()">✕</button>
+<!-- PLUGIN MODAL -->
+<div class="overlay" id="plugin-modal">
+  <div class="mbox" style="width:640px">
+    <div class="mhdr"><div class="mtitle" style="color:var(--gold)">📦 HƯỚNG DẪN PLUGIN ROBLOX</div><button class="mclose" onclick="closeModal('plugin-modal')">✕</button></div>
+    <div class="mbody">
+      <div class="step"><div class="snum">1</div><div><div class="stitle">Tải Plugin Script</div><div class="sdesc">Nhấn <strong>"⬇️ Tải Plugin .lua"</strong> ở sidebar trái — file đã có sẵn User ID của bạn.</div></div></div>
+      <div class="step"><div class="snum">2</div><div><div class="stitle">Tạo Plugin trong Studio</div><div class="sdesc">Mở Roblox Studio → <strong>Plugins → Plugin Manager → Create New Plugin</strong> → Paste nội dung .lua vào.</div></div></div>
+      <div class="step"><div class="snum">3</div><div><div class="stitle">Bật HTTP Requests</div><div class="sdesc"><strong>Game Settings → Security → Allow HTTP Requests: ON</strong></div></div></div>
+      <div class="step"><div class="snum">4</div><div><div class="stitle">Chạy và ra lệnh!</div><div class="sdesc">Nhấn Play → quay lại web, chat với AI → nhấn <strong>🚀 → Roblox</strong> trên code block để thực thi ngay trong Studio.</div></div></div>
+      <div class="warning">⚠️ Chỉ dùng trong project cá nhân. Không chia sẻ User ID với người khác.</div>
     </div>
-    <div class="modal-body">
-      <div class="plugin-step">
-        <div class="step-num">1</div>
-        <div class="step-content">
-          <div class="step-title">Mở Roblox Studio</div>
-          <div class="step-desc">Mở Roblox Studio và vào project của bạn.</div>
-        </div>
+  </div>
+</div>
+
+<!-- API KEY MODAL -->
+<div class="overlay" id="apikey-modal">
+  <div class="mbox" style="width:490px">
+    <div class="mhdr"><div class="mtitle" style="color:var(--red)">🔑 GEMINI API KEY</div><button class="mclose" onclick="closeModal('apikey-modal')">✕</button></div>
+    <div class="mbody">
+      <div class="key-err" id="key-err"></div>
+      <div style="background:rgba(0,255,224,.06);border:1px solid var(--bc);border-radius:9px;padding:14px;margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;color:var(--cyan);margin-bottom:8px;letter-spacing:1px">⚡ TỰ ĐỘNG LẤY API KEY</div>
+        <div style="font-size:11px;color:var(--text);line-height:1.65;margin-bottom:10px">Nhấn nút bên dưới → AI Studio mở → Copy key → Dán vào ô bên dưới (app sẽ tự phát hiện từ clipboard!)</div>
+        <button class="auto-btn" onclick="autoGetKey()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          🚀 Mở Google AI Studio → Lấy key
+        </button>
+        <div id="auto-status" style="margin-top:8px;font-size:10px;color:var(--dim);min-height:16px"></div>
       </div>
-      <div class="plugin-step">
-        <div class="step-num">2</div>
-        <div class="step-content">
-          <div class="step-title">Tạo Plugin Script</div>
-          <div class="step-desc">Trong <code>ServerStorage</code>, tạo một <code>ModuleScript</code> tên <code>RobloxAIPlugin</code>. Sau đó vào <strong>Plugins → Plugin Manager</strong> để tạo plugin mới, hoặc dùng Script dưới đây trực tiếp trong <code>StarterPlayerScripts</code> để test:</div>
-          <div class="code-block">
-            <div class="code-header">
-              <div class="code-lang">LUA — Plugin Code</div>
-              <div class="code-actions">
-                <button class="btn-code-action btn-copy-code" onclick="copyPluginCode()">📋 Copy</button>
-              </div>
-            </div>
-            <div class="code-body" id="plugin-code-display">-- RobloxAI Studio Plugin v2.0
--- Paste vào Plugin Script trong Roblox Studio
+      <a class="klink c" href="https://aistudio.google.com/app/apikey" target="_blank">🔑 <span><strong>Tạo API key miễn phí</strong><br><span style="font-weight:400;font-size:10px">aistudio.google.com → Get API Key</span></span></a>
+      <a class="klink g" href="https://console.cloud.google.com/billing" target="_blank">💳 <span><strong>Bật billing (không giới hạn)</strong><br><span style="font-weight:400;font-size:10px">Google Cloud Console → Billing</span></span></a>
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--dim);margin-bottom:6px">DÁN KEY MỚI:</div>
+      <div style="font-size:9px;color:var(--dim);margin-bottom:5px">Đang dùng: <code id="cur-key">—</code></div>
+      <div class="krow">
+        <input id="key-inp" class="kinput" type="text" placeholder="AIzaSy..." onkeydown="if(event.key==='Enter')saveKey()">
+        <button class="ksave" onclick="saveKey()">LƯU</button>
+      </div>
+      <div style="margin-top:8px;font-size:9px;color:var(--dim)">Key lưu trong localStorage — không gửi lên server.</div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE TIPS -->
+<div class="overlay" id="slide-tips">
+  <div class="mbox" style="width:460px">
+    <div class="mhdr"><div class="mtitle" style="color:var(--purple)">💡 GỢI Ý SLIDE</div><button class="mclose" onclick="closeModal('slide-tips')">✕</button></div>
+    <div class="mbody">
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div class="hint" style="padding:8px 11px;border-radius:7px;cursor:pointer;font-size:11px;border:1px solid var(--b)" onclick="useHint(this.textContent.trim());closeModal('slide-tips')">📊 Tạo 5 slide giới thiệu công ty về phần mềm quản lý trường học</div>
+        <div class="hint" style="padding:8px 11px;border-radius:7px;cursor:pointer;font-size:11px;border:1px solid var(--b)" onclick="useHint(this.textContent.trim());closeModal('slide-tips')">🎓 Làm slide thuyết trình về AI và Machine Learning cho sinh viên CNTT</div>
+        <div class="hint" style="padding:8px 11px;border-radius:7px;cursor:pointer;font-size:11px;border:1px solid var(--b)" onclick="useHint(this.textContent.trim());closeModal('slide-tips')">💼 Tạo slide báo cáo doanh thu Q4 với biểu đồ Chart.js đẹp</div>
+        <div class="hint" style="padding:8px 11px;border-radius:7px;cursor:pointer;font-size:11px;border:1px solid var(--b)" onclick="useHint(this.textContent.trim());closeModal('slide-tips')">🎨 Slide pitch deck startup theme tối hiện đại có animation</div>
+        <div class="hint" style="padding:8px 11px;border-radius:7px;cursor:pointer;font-size:11px;border:1px solid var(--b)" onclick="useHint(this.textContent.trim());closeModal('slide-tips')">📚 Slide bài giảng về lịch sử Việt Nam cho học sinh lớp 10</div>
+      </div>
+      <div style="margin-top:12px;padding:9px 11px;background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.2);border-radius:7px;font-size:10px;color:var(--purple);line-height:1.6">💡 AI tạo slide HTML chạy trực tiếp trên trình duyệt. Hỗ trợ animation, Chart.js, điều hướng bàn phím, fullscreen!</div>
+    </div>
+  </div>
+</div>
+
+<!-- DOCX TIPS -->
+<div class="overlay" id="docx-tips">
+  <div class="mbox" style="width:460px">
+    <div class="mhdr"><div class="mtitle" style="color:var(--green)">💡 GỢI Ý WORD/DOCX</div><button class="mclose" onclick="closeModal('docx-tips')">✕</button></div>
+    <div class="mbody">
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div class="hint" style="padding:8px 11px;border-radius:7px;cursor:pointer;font-size:11px;border:1px solid var(--b)" onclick="useHint(this.textContent.trim());closeModal('docx-tips')">📝 Viết báo cáo thực tập ngành CNTT 10 trang đầy đủ mục lục, tài liệu tham khảo</div>
+        <div class="hint" style="padding:8px 11px;border-radius:7px;cursor:pointer;font-size:11px;border:1px solid var(--b)" onclick="useHint(this.textContent.trim());closeModal('docx-tips')">📄 Tạo hợp đồng dịch vụ phần mềm chuyên nghiệp đầy đủ điều khoản</div>
+        <div class="hint" style="padding:8px 11px;border-radius:7px;cursor:pointer;font-size:11px;border:1px solid var(--b)" onclick="useHint(this.textContent.trim());closeModal('docx-tips')">✉️ Viết công văn xin phép nghỉ học theo mẫu trường đại học</div>
+        <div class="hint" style="padding:8px 11px;border-radius:7px;cursor:pointer;font-size:11px;border:1px solid var(--b)" onclick="useHint(this.textContent.trim());closeModal('docx-tips')">📋 Tạo kế hoạch kinh doanh startup công nghệ 2025 chi tiết có bảng số liệu</div>
+        <div class="hint" style="padding:8px 11px;border-radius:7px;cursor:pointer;font-size:11px;border:1px solid var(--b)" onclick="useHint(this.textContent.trim());closeModal('docx-tips')">🎓 Viết đề cương luận văn tốt nghiệp về ứng dụng AI trong giáo dục</div>
+      </div>
+      <div style="margin-top:12px;padding:9px 11px;background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.18);border-radius:7px;font-size:10px;color:var(--green);line-height:1.6">💡 File .doc mở được bằng Microsoft Word, Google Docs, LibreOffice. Hỗ trợ heading, bảng, danh sách đánh số!</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Firebase ──
+firebase.initializeApp({
+  apiKey:"AIzaSyCDQsJ_NrGK5ouRLS7vFr55OBZQ0nKhHSk",
+  authDomain:"vietnam-life-game.firebaseapp.com",
+  databaseURL:"https://vietnam-life-game-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"vietnam-life-game",
+  storageBucket:"vietnam-life-game.firebasestorage.app",
+  messagingSenderId:"134954120781",
+  appId:"1:134954120781:web:d7f762adb80bfce3140e04"
+});
+const auth = firebase.auth();
+const db   = firebase.database();
+
+// ── Gemini endpoints (lightest first = more quota) ──
+const EP = [
+  {m:"gemini-2.0-flash-lite",        a:"v1beta"},
+  {m:"gemini-2.0-flash-lite-001",    a:"v1beta"},
+  {m:"gemini-2.5-flash-lite",        a:"v1beta"},
+  {m:"gemini-2.0-flash",             a:"v1beta"},
+  {m:"gemini-2.0-flash-001",         a:"v1beta"},
+  {m:"gemini-flash-latest",          a:"v1beta"},
+  {m:"gemini-2.5-flash",             a:"v1beta"},
+  {m:"gemini-3.1-flash-lite-preview",a:"v1beta"},
+  {m:"gemini-3-flash-preview",       a:"v1beta"},
+  {m:"gemini-2.5-pro",               a:"v1beta"},
+  {m:"gemini-3.1-pro-preview",       a:"v1beta"},
+  {m:"gemini-3-pro-preview",         a:"v1beta"},
+];
+let epIdx=0;
+const getKey=()=>localStorage.getItem('gkey')||"AIzaSyBg3HE-IHMkzVg5RRZTrw5QCg-YWup3_jY";
+const apiURL=(m,a)=>`https://generativelanguage.googleapis.com/${a}/models/${m}:generateContent?key=${getKey()}`;
+
+// ── Mode configs ──
+const MODES = {
+  roblox:{
+    icon:'🎮', r:'ROBLOX', a:' AI',
+    desc:'Mô tả điều bạn muốn tạo trong Roblox — AI viết code Luau và gửi thẳng vào Studio!',
+    ph:'Ví dụ: Tạo hệ thống inventory, script xe hơi, hiệu ứng lửa...',
+    hints:['🧱 Tạo ngôi nhà','⚔️ Script chiến đấu','💰 Hệ thống tiền','🚗 Xe ô tô','🌟 Particle effects','📦 Inventory','🏆 Leaderboard','🗺️ Tạo map'],
+    sys:`Chuyên gia Roblox Luau. Viết code trong \`\`\`lua\`\`\`. Dùng Instance.new(), game:GetService(). Ngắn gọn, tiếng Việt.`
+  },
+  slide:{
+    icon:'📊', r:'SLIDE', a:' MAKER',
+    desc:'Tạo slide thuyết trình đẹp — HTML/CSS/JS, animation, Chart.js. Tải về mở ngay trên trình duyệt!',
+    ph:'Ví dụ: Tạo 6 slide pitch deck startup AI, theme tối hiện đại...',
+    hints:['🎓 Slide học thuật','💼 Báo cáo công ty','🚀 Pitch startup','📈 Doanh thu','🎨 Portfolio','📚 Bài giảng','🌍 Địa lý','🔬 Khoa học'],
+    sys:`Tạo HTML slide đẹp. LUÔN trả về code đầy đủ trong \`\`\`html\`\`\`.
+Rules: CSS animation mượt, Google Fonts, gradient đẹp. Mỗi slide = div.slide. Nút Prev/Next, keyboard arrows, số trang, nút fullscreen. Theme tối hiện đại. Giải thích ngắn tiếng Việt rồi code.`
+  },
+  docx:{
+    icon:'📄', r:'WORD', a:' MAKER',
+    desc:'Tạo tài liệu Word chuyên nghiệp — tải về .doc, mở bằng Microsoft Word, Google Docs!',
+    ph:'Ví dụ: Viết báo cáo thực tập CNTT 10 trang đầy đủ mục lục...',
+    hints:['📝 Báo cáo thực tập','📋 Kế hoạch KD','✉️ Công văn','📄 Hợp đồng','🎓 Đề cương LV','📊 Báo cáo DA','📰 Bài báo','📖 Giáo án'],
+    sys:`Tạo tài liệu Word. LUÔN trả về HTML đầy đủ trong \`\`\`html\`\`\` (lưu thành .doc).
+Rules: h1/h2/h3 cho heading, p cho đoạn, table cho bảng, ul/ol cho danh sách. CSS inline đẹp, font Arial, cỡ chuẩn. Có tiêu đề, mục lục nếu cần. Nội dung đầy đủ chuyên nghiệp. Giải thích ngắn tiếng Việt rồi code.`
+  },
+  ai:{
+    icon:'✨', r:'AI', a:' CHAT',
+    desc:'Trợ lý AI đa năng — lập trình, viết lách, phân tích, dịch thuật, toán học...',
+    ph:'Hỏi bất cứ điều gì...',
+    hints:['💻 Code Python','🌐 Dịch Anh-Việt','📖 Tóm tắt','🧮 Giải toán','🎨 Ý tưởng','🔍 Phân tích','✍️ Viết essay','🤔 Giải thích khái niệm'],
+    sys:`Trợ lý AI thông minh, trả lời tiếng Việt, hữu ích và chính xác. Code trong \`\`\`lang\`\`\`.`
+  }
+};
+
+// ── State ──
+let user=null, hist=[], mode='roblox', lastHTML={slide:'',docx:''}, pluginLua='';
+
+// ── Auth ──
+auth.onAuthStateChanged(u=>{ if(u){user=u;showApp(u);}else showLogin(); });
+function loginGoogle(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>toast('Lỗi: '+e.message,1)); }
+function doSignOut(){ auth.signOut(); }
+
+function showApp(u){
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').classList.add('on');
+  document.getElementById('uinfo').style.display='flex';
+  document.getElementById('uavt').src=u.photoURL||'';
+  document.getElementById('uname').textContent=(u.displayName||u.email||'').split(' ').slice(-1)[0];
+  document.getElementById('uid-box').textContent=u.uid;
+  buildPlugin(u.uid);
+  listenDB(u.uid);
+  setMode('roblox');
+  updKeyDisp();
+}
+function showLogin(){
+  document.getElementById('login').style.display='flex';
+  document.getElementById('app').classList.remove('on');
+  user=null;
+}
+
+// ── Mode ──
+function setMode(m){
+  mode=m;
+  const cfg=MODES[m];
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+m).classList.add('active');
+  ['roblox','slide','docx','ai'].forEach(x=>{
+    document.getElementById('sb-'+x).style.display=x===m?'':'none';
+  });
+  const qt=document.getElementById('queue-title');
+  qt.textContent=m==='roblox'?'⚡ Hàng đợi lệnh':m==='slide'?'📊 Slides':'📄 Tài liệu';
+  document.getElementById('wicon').textContent=cfg.icon;
+  document.getElementById('wtR').textContent=cfg.r;
+  document.getElementById('wtA').textContent=cfg.a;
+  document.getElementById('wdesc').textContent=cfg.desc;
+  document.getElementById('inp').placeholder=cfg.ph;
+  document.getElementById('hints').innerHTML=cfg.hints.map(h=>`<span class="hint" onclick="useHint(this.textContent)">${h}</span>`).join('');
+  const pv=document.getElementById('pvpanel');
+  if(m==='slide'||m==='docx'){ pv.classList.remove('hidden'); document.getElementById('pvtitle').textContent=m==='slide'?'SLIDE PREVIEW':'DOCX PREVIEW'; }
+  else pv.classList.add('hidden');
+  clearHistory(true);
+}
+
+// ── Gemini ──
+async function callGemini(msg){
+  const cfg=MODES[mode];
+  const recent=hist.slice(-4);
+  const msgs=[...recent.map(x=>({role:x.r==='ai'?'model':'user',parts:[{text:x.c}]})),{role:'user',parts:[{text:msg}]}];
+  const body={system_instruction:{parts:[{text:cfg.sys}]},contents:msgs,generationConfig:{temperature:.7,maxOutputTokens:8192}};
+  const errs=[];
+  for(let i=0;i<EP.length;i++){
+    const {m,a}=EP[i];
+    let res,data;
+    try{
+      res=await fetch(apiURL(m,a),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      data=await res.json();
+    }catch(e){errs.push(m+':net');continue;}
+    if(res.ok){
+      epIdx=i;
+      document.getElementById('mbadge').textContent='🤖 '+m;
+      document.getElementById('mbadge2').textContent=m;
+      return data.candidates?.[0]?.content?.parts?.[0]?.text||'Không có phản hồi.';
+    }
+    const em=data?.error?.message||'';
+    const st=res.status;
+    if((st===400||st===401||st===403)&&(em.includes('API key')||em.includes('permission')||em.includes('invalid'))){
+      openApiKeyModal('❌ API key bị từ chối ('+st+'):\n'+em);
+      throw new Error('Key lỗi');
+    }
+    if(st===429||em.includes('quota')||em.includes('RESOURCE_EXHAUSTED')){
+      errs.push(m+':quota'); toast('⚠️ '+m+' hết quota…'); continue;
+    }
+    if(st===404||em.includes('not found')||em.includes('not supported')){
+      errs.push(m+':404'); continue;
+    }
+    errs.push(m+':'+st); continue;
+  }
+  openApiKeyModal('Tất cả models thất bại:\n• '+errs.join('\n• '));
+  throw new Error('Không kết nối Gemini.\n'+errs.join(', '));
+}
+
+// ── Send message ──
+async function sendMsg(){
+  const inp=document.getElementById('inp');
+  const txt=inp.value.trim();
+  if(!txt||!user)return;
+  inp.value=''; autoResize(inp);
+  document.getElementById('sendbtn').disabled=true;
+  document.getElementById('welcome')?.remove();
+  addMsg('user',txt);
+  hist.push({r:'user',c:txt});
+  const tid=showTyping();
+  try{
+    const resp=await callGemini(txt);
+    removeTyping(tid);
+    addMsg('ai',resp);
+    hist.push({r:'ai',c:resp});
+    if(hist.length>6) hist=hist.slice(-6);
+    document.getElementById('hcount').textContent=hist.length;
+    if(mode==='slide'||mode==='docx') autoPreview(resp);
+  }catch(e){
+    removeTyping(tid);
+    addMsg('ai','❌ '+e.message);
+  }
+  document.getElementById('sendbtn').disabled=false;
+}
+
+// ── Render messages ──
+function addMsg(role,content){
+  const c=document.getElementById('msgs');
+  const d=document.createElement('div');
+  d.className='msg '+role;
+  const t=new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});
+  const av=role==='user'
+    ?`<div class="mavt"><img src="${user?.photoURL||''}" onerror="this.parentElement.textContent='U'" alt=""></div>`
+    :`<div class="mavt">AI</div>`;
+  d.innerHTML=`${av}<div class="mcnt"><div class="mbub">${renderContent(content,role)}</div><div class="mtime">${t}</div></div>`;
+  c.appendChild(d); c.scrollTop=c.scrollHeight;
+}
+
+function renderContent(content,role){
+  if(role==='user') return esc(content).replace(/\n/g,'<br>');
+  let html='';
+  content.split(/(```(?:\w+)?\n[\s\S]*?```)/g).forEach(p=>{
+    if(!p.startsWith('```')){ html+=prose(p); return; }
+    const m=p.match(/```(\w+)?\n([\s\S]*?)```/);
+    if(!m){ html+=prose(p); return; }
+    const lang=(m[1]||'code').toUpperCase();
+    const code=m[2];
+    const id='b'+Math.random().toString(36).substr(2,7);
+    const isLua=m[1]&&m[1].toLowerCase()==='lua';
+    const isHtml=m[1]&&['html','htm'].includes(m[1].toLowerCase());
+    let acts=`<button class="cact cp" onclick="copyBlock('${id}')">📋</button>`;
+    if(isLua) acts=`<button class="cact rb" onclick="send2Roblox('${id}')">🚀 Roblox</button>`+acts;
+    if(isHtml) acts=`<button class="cact pv" onclick="pvBlock('${id}')">👁 Preview</button><button class="cact dl" onclick="dlBlock('${id}')">⬇️</button>`+acts;
+    html+=`<div class="cblock" id="${id}"><div class="chdr"><div class="clang">${lang}</div><div class="cacts">${acts}</div></div><div class="cbody" id="${id}_body">${syntaxHL(esc(code))}</div></div>`;
+  });
+  return html;
+}
+function prose(t){ return '<span>'+esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\n/g,'<br>')+'</span>'; }
+function syntaxHL(c){ return c.replace(/(--[^\n]*)/g,'<span class="cmt">$1</span>').replace(/\b(local|function|end|if|then|else|elseif|for|do|while|return|and|or|not|in|break|true|false|nil|repeat|until)\b/g,'<span class="kw">$1</span>').replace(/(["'])((?:(?!\1)[^\\]|\\.)*)(\1)/g,'<span class="str">$1$2$3</span>').replace(/\b(\d+(?:\.\d+)?)\b/g,'<span class="num">$1</span>'); }
+
+// ── Code block actions ──
+function getBlockCode(id){ return document.getElementById(id+'_body')?.innerText||''; }
+function copyBlock(id){ navigator.clipboard.writeText(getBlockCode(id)).then(()=>toast('📋 Đã copy!')); }
+function send2Roblox(id){
+  if(!user){toast('Vui lòng đăng nhập',1);return;}
+  const code=getBlockCode(id);
+  db.ref('commands/'+user.uid+'/queue').push({type:'script',content:code,summary:code.substring(0,60),status:'pending',timestamp:Date.now()})
+    .then(()=>toast('🚀 Đã gửi tới Roblox Studio!')).catch(e=>toast('❌ '+e.message,1));
+}
+function pvBlock(id){ const code=getBlockCode(id); if(mode==='slide') lastHTML.slide=code; else lastHTML.docx=code; showPvFrame(code); }
+function dlBlock(id){ const code=getBlockCode(id); dlHTML(code); }
+function dlHTML(code){ if(!code){toast('Không có nội dung',1);return;} const fname=mode==='slide'?'slide_'+Date.now()+'.html':'doc_'+Date.now()+'.doc'; const full=mode==='docx'?`<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>${code}</body></html>`:code; const blob=new Blob([full],{type:mode==='docx'?'application/msword':'text/html'}); const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;a.click();toast('✅ Đã tải '+fname); }
+
+// ── Preview ──
+function autoPreview(resp){ const m=resp.match(/```html?\n([\s\S]*?)```/); if(!m)return; const code=m[1]; if(mode==='slide') lastHTML.slide=code; else lastHTML.docx=code; showPvFrame(code); }
+function showPvFrame(html){
+  const c=document.getElementById('pvcnt');
+  const safe=html.replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  c.innerHTML=`<iframe srcdoc="${safe}" style="width:100%;height:100%;border:none" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>`;
+}
+function previewSlide(){ if(lastHTML.slide) showPvFrame(lastHTML.slide); else toast('Chưa có slide',1); }
+function closePv(){ document.getElementById('pvcnt').innerHTML='<div class="pvempty"><div class="pvempty-icon">👁</div><div style="font-size:11px;color:var(--dim)">Chưa có preview</div></div>'; }
+function downloadPreview(){ const code=mode==='slide'?lastHTML.slide:lastHTML.docx; if(code) dlHTML(code); else toast('Chưa có nội dung',1); }
+function downloadSlide(){ if(lastHTML.slide) dlHTML(lastHTML.slide); else toast('Chưa có slide',1); }
+function downloadDocx(){ if(lastHTML.docx) dlHTML(lastHTML.docx); else toast('Chưa có tài liệu',1); }
+function copyDocx(){ if(lastHTML.docx){navigator.clipboard.writeText(lastHTML.docx);toast('📋 Đã copy!');}else toast('Chưa có tài liệu',1); }
+function exportChat(){ const t=hist.map(x=>(x.r==='user'?'👤 Bạn':'🤖 AI')+': '+x.c).join('\n\n---\n\n'); const b=new Blob([t],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='chat_'+Date.now()+'.txt';a.click();toast('✅ Xuất thành công!'); }
+
+// ── Plugin ──
+function buildPlugin(uid){
+  pluginLua=`-- RobloxAI Studio Plugin v2.1
+-- Generated for UID: ${uid}
 
 local HttpService = game:GetService("HttpService")
-local Selection = game:GetService("Selection")
-local RunService = game:GetService("RunService")
-
--- ⚠️ THAY USER_ID BẰNG ID CỦA BẠN (lấy từ web app)
-local USER_ID = "PASTE_YOUR_USER_ID_HERE"
-
+local USER_ID = "${uid}"
 local FIREBASE_URL = "https://vietnam-life-game-default-rtdb.asia-southeast1.firebasedatabase.app"
-local POLL_INTERVAL = 2 -- giây
+local POLL = 2
 
-local function getCommands()
-    local ok, result = pcall(function()
-        local url = FIREBASE_URL .. "/commands/" .. USER_ID .. "/queue.json"
-        local res = HttpService:GetAsync(url, true)
-        return HttpService:JSONDecode(res)
-    end)
-    if ok then return result else return nil end
-end
-
-local function markDone(cmdId)
-    pcall(function()
-        local url = FIREBASE_URL .. "/commands/" .. USER_ID .. "/queue/" .. cmdId .. ".json"
-        HttpService:PatchAsync(url, HttpService:JSONEncode({status = "done"}))
+local function req(url, method, body)
+    return pcall(function()
+        if method == "GET" then return HttpService:JSONDecode(HttpService:GetAsync(url, true)) end
+        if method == "PATCH" then HttpService:PatchAsync(url, body) end
+        if method == "PUT" then HttpService:PutAsync(url, body) end
     end)
 end
 
-local function executeCommand(cmdId, cmd)
+local function markDone(id)
+    req(FIREBASE_URL.."/commands/"..USER_ID.."/queue/"..id..".json","PATCH",HttpService:JSONEncode({status="done"}))
+end
+
+local function heartbeat()
+    req(FIREBASE_URL.."/plugin_heartbeat/"..USER_ID..".json","PUT",HttpService:JSONEncode({timestamp=os.time()*1000,status="online"}))
+end
+
+local function execute(id, cmd)
     if cmd.type == "script" then
-        -- Chạy script Lua
         local ok, err = pcall(function()
             local fn = loadstring(cmd.content)
             if fn then fn() end
         end)
-        if not ok then warn("[RobloxAI] Script error: " .. tostring(err)) end
-
-    elseif cmd.type == "model" then
-        -- Tạo model từ mô tả (thực thi code tạo part/model)
-        local ok, err = pcall(function()
-            local fn = loadstring(cmd.content)
-            if fn then fn() end
-        end)
-        if not ok then warn("[RobloxAI] Model error: " .. tostring(err)) end
-
+        if not ok then warn("[AI] Script error: "..tostring(err)) end
     elseif cmd.type == "chat" then
-        -- Hiển thị tin nhắn trong output
-        print("[RobloxAI] " .. tostring(cmd.content))
+        print("[AI] "..tostring(cmd.content))
     end
-    markDone(cmdId)
+    markDone(id)
 end
 
--- Main polling loop
-print("[RobloxAI] ✅ Plugin đã khởi động! User: " .. USER_ID)
+print("[RobloxAI] Plugin started! UID: "..USER_ID)
+heartbeat()
+local hbTimer = 0
 
 while true do
-    local commands = getCommands()
-    if commands then
-        for cmdId, cmd in pairs(commands) do
-            if cmd.status == "pending" then
-                print("[RobloxAI] ⚡ Thực thi lệnh: " .. tostring(cmd.type))
-                executeCommand(cmdId, cmd)
+    local ok, cmds = req(FIREBASE_URL.."/commands/"..USER_ID.."/queue.json","GET")
+    if ok and type(cmds) == "table" then
+        for id, cmd in pairs(cmds) do
+            if type(cmd) == "table" and cmd.status == "pending" then
+                print("[AI] Running: "..tostring(cmd.type))
+                execute(id, cmd)
             end
         end
     end
-    wait(POLL_INTERVAL)
-end</div>
-          </div>
-        </div>
-      </div>
-      <div class="plugin-step">
-        <div class="step-num">3</div>
-        <div class="step-content">
-          <div class="step-title">Dán User ID</div>
-          <div class="step-desc">Copy User ID từ sidebar bên trái và thay vào dòng <code>USER_ID = "PASTE_YOUR_USER_ID_HERE"</code> trong plugin.</div>
-        </div>
-      </div>
-      <div class="plugin-step">
-        <div class="step-num">4</div>
-        <div class="step-content">
-          <div class="step-title">Bật HTTP Requests</div>
-          <div class="step-desc">Vào <strong>Game Settings → Security</strong> và bật <strong>"Allow HTTP Requests"</strong> để plugin có thể kết nối Firebase.</div>
-        </div>
-      </div>
-      <div class="plugin-step">
-        <div class="step-num">5</div>
-        <div class="step-content">
-          <div class="step-title">Bắt đầu sử dụng!</div>
-          <div class="step-desc">Chạy game trong Studio, rồi quay lại web app và ra lệnh cho AI. Code sẽ tự động thực thi trong Roblox Studio của bạn! 🚀</div>
-        </div>
-      </div>
-      <div style="padding:16px;background:rgba(255,192,64,0.08);border:1px solid rgba(255,192,64,0.25);border-radius:8px;font-size:13px;color:var(--gold);line-height:1.6;">
-        ⚠️ <strong>Lưu ý bảo mật:</strong> Chỉ chạy plugin trong project Roblox Studio cá nhân của bạn. Không chia sẻ User ID với người khác.
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════ API KEY MODAL ═══════ -->
-<div class="modal-overlay" id="apikey-modal">
-  <div class="modal-box" style="width:480px">
-    <div class="modal-header">
-      <div class="modal-title" style="color:var(--red)">⚠️ GEMINI API KEY HẾT QUOTA</div>
-      <button class="btn-modal-close" onclick="document.getElementById('apikey-modal').classList.remove('open')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div id="apikey-error-info" style="font-size:12px;font-family:'JetBrains Mono',monospace;line-height:1.6;margin-bottom:14px;padding:10px 12px;background:rgba(255,58,58,0.08);border:1px solid rgba(255,58,58,0.2);border-radius:6px;color:var(--red);white-space:pre-wrap;display:none"></div>
-      <div style="font-size:14px;line-height:1.7;margin-bottom:20px;color:var(--text)">
-        API key hiện tại đã <strong style="color:var(--red)">hết quota free tier</strong>.<br>
-        Key đang dùng: <code id="current-key-display" style="font-size:10px">—</code><br>
-        Có 2 cách xử lý:
-      </div>
-      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
-        <a href="https://aistudio.google.com/app/apikey" target="_blank"
-           style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(0,255,224,0.07);border:1px solid var(--border-c);border-radius:8px;color:var(--cyan);text-decoration:none;font-size:13px;font-weight:600;transition:var(--transition)"
-           onmouseover="this.style.background='rgba(0,255,224,0.14)'" onmouseout="this.style.background='rgba(0,255,224,0.07)'">
-          🔑 <span><strong>Tạo API key mới miễn phí</strong><br><span style="color:var(--text-dim);font-weight:400">aistudio.google.com → Get API Key</span></span>
-        </a>
-        <a href="https://console.cloud.google.com/billing" target="_blank"
-           style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(255,192,64,0.07);border:1px solid rgba(255,192,64,0.25);border-radius:8px;color:var(--gold);text-decoration:none;font-size:13px;font-weight:600;transition:var(--transition)"
-           onmouseover="this.style.background='rgba(255,192,64,0.14)'" onmouseout="this.style.background='rgba(255,192,64,0.07)'">
-          💳 <span><strong>Bật billing để dùng không giới hạn</strong><br><span style="color:var(--text-dim);font-weight:400">Google Cloud Console → Billing</span></span>
-        </a>
-      </div>
-      <div style="font-size:13px;font-weight:700;margin-bottom:8px;letter-spacing:1px;color:var(--text-dim)">DÁN API KEY MỚI VÀO ĐÂY:</div>
-      <div style="display:flex;gap:8px">
-        <input id="new-apikey-input" type="text" placeholder="AIzaSy..."
-          style="flex:1;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;outline:none"
-          onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'"
-          onkeydown="if(event.key==='Enter')saveApiKey()">
-        <button onclick="saveApiKey()" style="padding:10px 20px;background:var(--red);border:none;border-radius:8px;color:#fff;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer;letter-spacing:1px">LƯU</button>
-      </div>
-      <div style="margin-top:12px;font-size:11px;color:var(--text-dim);line-height:1.6">
-        Key được lưu cục bộ trong trình duyệt, không gửi lên server.
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
-
-<!-- ═══════ SCRIPTS ═══════ -->
-<script>
-// ─── Firebase Config ───
-const firebaseConfig = {
-  apiKey: "AIzaSyCDQsJ_NrGK5ouRLS7vFr55OBZQ0nKhHSk",
-  authDomain: "vietnam-life-game.firebaseapp.com",
-  databaseURL: "https://vietnam-life-game-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "vietnam-life-game",
-  storageBucket: "vietnam-life-game.firebasestorage.app",
-  messagingSenderId: "134954120781",
-  appId: "1:134954120781:web:d7f762adb80bfce3140e04",
-  measurementId: "G-39VPPE1F9T"
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.database();
-
-// ─── Gemini Config ───
-// Models lấy trực tiếp từ ListModels API của key này (chỉ dùng generateContent)
-const GEMINI_ENDPOINTS = [
-  { model: "gemini-2.5-flash",                      api: "v1beta" },
-  { model: "gemini-2.5-pro",                         api: "v1beta" },
-  { model: "gemini-3.1-pro-preview",                 api: "v1beta" },
-  { model: "gemini-3-pro-preview",                   api: "v1beta" },
-  { model: "gemini-3.1-flash-lite-preview",          api: "v1beta" },
-  { model: "gemini-3-flash-preview",                 api: "v1beta" },
-  { model: "gemini-2.0-flash",                       api: "v1beta" },
-  { model: "gemini-2.0-flash-001",                   api: "v1beta" },
-  { model: "gemini-2.0-flash-lite",                  api: "v1beta" },
-  { model: "gemini-2.0-flash-lite-001",              api: "v1beta" },
-  { model: "gemini-flash-latest",                    api: "v1beta" },
-  { model: "gemini-2.5-flash-lite",                  api: "v1beta" },
-  { model: "gemini-pro-latest",                      api: "v1beta" },
-];
-let currentEndpointIndex = 0;
-
-function getGeminiKey() {
-  return localStorage.getItem('robloxai_gemini_key') || "AIzaSyBg3HE-IHMkzVg5RRZTrw5QCg-YWup3_jY";
+    wait(POLL)
+    hbTimer = hbTimer + POLL
+    if hbTimer >= 8 then heartbeat(); hbTimer = 0 end
+end`;
 }
-function getGeminiURL(model, api) {
-  return `https://generativelanguage.googleapis.com/${api}/models/${model}:generateContent?key=${getGeminiKey()}`;
+function downloadPlugin(){
+  if(!user){toast('Vui lòng đăng nhập',1);return;}
+  const b=new Blob([pluginLua],{type:'text/plain'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='RobloxAI_Plugin.lua';a.click();
+  toast('✅ Đã tải plugin! Mở hướng dẫn để cài đặt →');
 }
 
-// ─── State ───
-let currentUser = null;
-let chatHistory = [];
-let commandQueue = [];
-let pluginConnected = false;
-
-// ─── System Prompt ───
-const SYSTEM_PROMPT = `Bạn là RobloxAI Studio — trợ lý AI chuyên gia về lập trình và thiết kế game trong Roblox Studio sử dụng ngôn ngữ Luau.
-
-NHIỆM VỤ: Giúp người dùng:
-- Viết script Luau để tạo gameplay, hệ thống, cơ chế
-- Tạo model/part/terrain trong Workspace
-- Chỉnh sửa Properties của đối tượng
-- Cài đặt RemoteEvents, BindableEvents
-- Tối ưu hóa code hiện có
-- Debug và sửa lỗi
-
-NGUYÊN TẮC TRẢ LỜI:
-1. LUÔN cung cấp code Luau cụ thể, chạy được ngay
-2. Phân biệt rõ LocalScript (client), Script (server), ModuleScript
-3. Dùng Services đúng cách: game:GetService()
-4. Code trong block \`\`\`lua ... \`\`\` để web app có thể gửi sang Roblox Studio
-5. Giải thích ngắn gọn bằng tiếng Việt
-6. Nếu tạo model/part, dùng code Lua để tạo (Instance.new())
-7. Luôn thêm print() để debug
-
-KHI TẠO MODEL qua code:
-- Dùng Instance.new("Part") hoặc Instance.new("Model")
-- Set Parent cuối cùng sau khi config xong
-- Dùng workspace hoặc game.Workspace
-
-VÍ DỤ FORMAT CODE TẠO PART:
-\`\`\`lua
-local part = Instance.new("Part")
-part.Name = "MyPart"
-part.Size = Vector3.new(10, 1, 10)
-part.Position = Vector3.new(0, 5, 0)
-part.BrickColor = BrickColor.new("Bright red")
-part.Anchored = true
-part.Parent = workspace
-print("Đã tạo " .. part.Name)
-\`\`\`
-
-Trả lời bằng tiếng Việt, thân thiện và chuyên nghiệp.`;
-
-// ─── Auth ───
-auth.onAuthStateChanged(user => {
-  if (user) {
-    currentUser = user;
-    showApp(user);
-  } else {
-    showLogin();
-  }
-});
-
-function signInWithGoogle() {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).catch(err => {
-    showToast('Lỗi đăng nhập: ' + err.message, true);
+// ── Firebase DB ──
+function listenDB(uid){
+  db.ref('commands/'+uid+'/queue').on('value',snap=>{
+    const data=snap.val()||{};
+    const list=document.getElementById('qlist');
+    const items=Object.entries(data).sort((a,b)=>(b[1].timestamp||0)-(a[1].timestamp||0)).slice(0,12);
+    if(!items.length){list.innerHTML='<div class="qempty">Chưa có lệnh nào</div>';return;}
+    list.innerHTML=items.map(([,c])=>`<div class="qi ${c.status||''}"><div class="qit ${c.status||''}">${(c.type||'CMD').toUpperCase()} · ${(c.status||'').toUpperCase()}</div><div class="qitxt">${esc((c.summary||c.content||'').substring(0,50))}…</div></div>`).join('');
+  });
+  db.ref('plugin_heartbeat/'+uid).on('value',snap=>{
+    const v=snap.val();
+    const ok=v&&(Date.now()-v.timestamp<12000);
+    document.getElementById('cdot').className='cdot '+(ok?'ok':'wait');
+    document.getElementById('clabel').textContent=ok?'PLUGIN ✓':'PLUGIN';
   });
 }
 
-function signOut() {
-  auth.signOut();
+// ── API Key ──
+function openApiKeyModal(errMsg){
+  updKeyDisp();
+  const err=document.getElementById('key-err');
+  if(errMsg){err.textContent=errMsg;err.style.display='block';}else err.style.display='none';
+  document.getElementById('key-inp').value='';
+  openModal('apikey-modal');
+}
+function updKeyDisp(){
+  const k=getKey();
+  const el=document.getElementById('cur-key');
+  if(el) el.textContent=k?k.substring(0,10)+'…'+k.slice(-4):'Chưa có';
+}
+function saveKey(){
+  const k=document.getElementById('key-inp').value.trim();
+  if(!k||!k.startsWith('AIza')){toast('⚠️ Key phải bắt đầu bằng AIza',1);return;}
+  localStorage.setItem('gkey',k);
+  epIdx=0;
+  closeModal('apikey-modal');
+  updKeyDisp();
+  toast('✅ Đã lưu API key! Thử chat lại nhé.');
 }
 
-function showApp(user) {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').classList.add('visible');
-
-  document.getElementById('user-info').style.display = 'flex';
-  document.getElementById('user-avatar').src = user.photoURL || '';
-  document.getElementById('user-name').textContent = user.displayName || user.email;
-  document.getElementById('uid-display').textContent = user.uid;
-
-  // Update plugin code with real UID
-  updatePluginCodeUID(user.uid);
-
-  // Listen for plugin connection & command updates
-  listenToCommands(user.uid);
-
-  // Listen for plugin heartbeat
-  listenPluginHeartbeat(user.uid);
+// ── Auto get key ──
+let watchingClip=false;
+function autoGetKey(){
+  const status=document.getElementById('auto-status');
+  window.open('https://aistudio.google.com/app/apikey','_blank','width=1100,height=700');
+  status.style.color='var(--cyan)';
+  status.textContent='⏳ AI Studio đang mở… Copy key rồi dán vào ô bên dưới!';
+  setTimeout(()=>{
+    document.getElementById('key-inp').focus();
+    status.textContent='👆 Dán API key vào ô bên dưới rồi nhấn LƯU';
+    status.style.color='var(--green)';
+  },1200);
+  if(!watchingClip){ watchingClip=true; watchClip(status); }
 }
-
-function showLogin() {
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('app').classList.remove('visible');
-  currentUser = null;
-}
-
-// ─── Plugin code UID update ───
-function updatePluginCodeUID(uid) {
-  const el = document.getElementById('plugin-code-display');
-  if (el) {
-    el.textContent = el.textContent.replace('PASTE_YOUR_USER_ID_HERE', uid);
-  }
-}
-
-// ─── Firebase listeners ───
-function listenToCommands(uid) {
-  db.ref(`commands/${uid}/queue`).on('value', snap => {
-    const data = snap.val() || {};
-    renderQueue(data);
-  });
-}
-
-function listenPluginHeartbeat(uid) {
-  db.ref(`plugin_heartbeat/${uid}`).on('value', snap => {
-    const val = snap.val();
-    if (val && Date.now() - val.timestamp < 10000) {
-      setPluginConnected(true);
-    } else {
-      setPluginConnected(false);
-    }
-  });
-}
-
-function setPluginConnected(connected) {
-  pluginConnected = connected;
-  const dot = document.getElementById('conn-dot');
-  const label = document.getElementById('conn-label');
-  if (connected) {
-    dot.className = 'conn-dot connected';
-    label.textContent = 'PLUGIN: ĐÃ KẾT NỐI ✓';
-  } else {
-    dot.className = 'conn-dot waiting';
-    label.textContent = 'PLUGIN: CHỜ KẾT NỐI';
-  }
-}
-
-// ─── Queue rendering ───
-function renderQueue(data) {
-  const list = document.getElementById('queue-list');
-  const items = Object.entries(data);
-  if (items.length === 0) {
-    list.innerHTML = '<div class="queue-empty">Chưa có lệnh nào được gửi</div>';
-    return;
-  }
-  // Sort by timestamp desc
-  items.sort((a, b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
-  list.innerHTML = items.slice(0, 20).map(([id, cmd]) => `
-    <div class="queue-item ${cmd.status}">
-      <div class="qi-type ${cmd.status}">${cmd.type?.toUpperCase() || 'CMD'} · ${cmd.status?.toUpperCase()}</div>
-      <div class="qi-text">${escapeHtml(cmd.summary || cmd.content?.substring(0,60) || '')}...</div>
-    </div>
-  `).join('');
-}
-
-// ─── Send command to Firebase ───
-async function sendToRoblox(code, type = 'script', summary = '') {
-  if (!currentUser) { showToast('Vui lòng đăng nhập', true); return; }
-  const cmd = {
-    type,
-    content: code,
-    summary: summary || code.substring(0, 80),
-    status: 'pending',
-    timestamp: Date.now()
-  };
-  try {
-    await db.ref(`commands/${currentUser.uid}/queue`).push(cmd);
-    showToast('✅ Đã gửi lệnh đến Roblox Studio!');
-  } catch (e) {
-    showToast('❌ Lỗi gửi lệnh: ' + e.message, true);
-  }
-}
-
-// ─── Gemini Chat (endpoint fallback từ danh sách API thực) ───
-async function callGemini(userMessage) {
-  const messages = chatHistory.map(m => ({
-    role: m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: m.content }]
-  }));
-  messages.push({ role: 'user', parts: [{ text: userMessage }] });
-
-  const body = {
-    system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-    contents: messages,
-    generationConfig: { temperature: 0.7, maxOutputTokens: 4096 }
-  };
-
-  const errors = [];
-
-  for (let i = 0; i < GEMINI_ENDPOINTS.length; i++) {
-    const { model, api } = GEMINI_ENDPOINTS[i];
-    const tag = model;
-
-    let res, data;
-    try {
-      res = await fetch(getGeminiURL(model, api), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      data = await res.json();
-    } catch(netErr) {
-      errors.push(`${tag}: lỗi mạng`);
-      continue;
-    }
-
-    if (res.ok) {
-      // ✅ THÀNH CÔNG
-      currentEndpointIndex = i;
-      document.getElementById('model-badge').textContent = '🤖 ' + model;
-      return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Không có phản hồi.';
-    }
-
-    const errMsg = data?.error?.message || JSON.stringify(data?.error || '');
-    const status = res.status;
-
-    // Key sai / không có quyền
-    const isKeyBad = (status === 400 || status === 401 || status === 403)
-      && (errMsg.toLowerCase().includes('api key') || errMsg.toLowerCase().includes('permission') || errMsg.toLowerCase().includes('invalid'));
-    if (isKeyBad) {
-      showApiKeyModal('❌ API key bị từ chối (HTTP ' + status + '):\n' + errMsg);
-      throw new Error('API key không hợp lệ.');
-    }
-
-    // Hết quota → thử model tiếp
-    const isQuota = status === 429 || errMsg.toLowerCase().includes('quota') || errMsg.toLowerCase().includes('resource_exhausted');
-    if (isQuota) {
-      errors.push(tag + ': hết quota');
-      showToast('⚠️ ' + model + ' hết quota → thử tiếp...');
-      continue;
-    }
-
-    // Model không khả dụng → thử tiếp
-    const isNotFound = status === 404 || errMsg.includes('not found') || errMsg.includes('not supported');
-    if (isNotFound) {
-      errors.push(tag + ': không khả dụng');
-      continue;
-    }
-
-    // Lỗi khác → ghi nhận, thử tiếp
-    errors.push(tag + ': HTTP ' + status + ' - ' + errMsg.substring(0, 60));
-    continue;
-  }
-
-  // Tất cả thất bại
-  const detail = errors.join('\n• ');
-  showApiKeyModal('Thử ' + GEMINI_ENDPOINTS.length + ' models, tất cả thất bại:\n• ' + detail + '\n\n→ Nhập API key mới bên dưới.');
-  throw new Error('Không thể kết nối Gemini.\n• ' + detail);
-}
-
-// ─── API Key Modal ───
-function showApiKeyModal(msg) {
-  const modal = document.getElementById('apikey-modal');
-  const info = document.getElementById('apikey-error-info');
-  const keyDisplay = document.getElementById('current-key-display');
-  if (info) {
-    if (msg) {
-      info.textContent = msg;
-      info.style.display = 'block';
-    } else {
-      info.style.display = 'none';
-    }
-  }
-  if (keyDisplay) {
-    const k = getGeminiKey();
-    keyDisplay.textContent = k.substring(0, 10) + '...' + k.slice(-4);
-  }
-  // Pre-fill the input with current key for easy editing
-  const inp = document.getElementById('new-apikey-input');
-  if (inp && !inp.value) inp.value = getGeminiKey();
-  modal.classList.add('open');
-}
-function saveApiKey() {
-  const key = document.getElementById('new-apikey-input').value.trim();
-  if (!key || !key.startsWith('AIza')) {
-    showToast('⚠️ Key không hợp lệ (phải bắt đầu bằng AIza)', true);
-    return;
-  }
-  localStorage.setItem('robloxai_gemini_key', key);
-  currentEndpointIndex = 0;
-  document.getElementById('apikey-modal').classList.remove('open');
-  document.getElementById('model-badge').textContent = '🤖 gemini-2.5-flash';
-  showToast('✅ Đã lưu API key mới! Thử gửi tin nhắn lại nhé.');
-}
-
-// ─── Send message ───
-async function sendMessage() {
-  const input = document.getElementById('msg-input');
-  const text = input.value.trim();
-  if (!text || !currentUser) return;
-
-  input.value = '';
-  autoResize(input);
-  document.getElementById('btn-send').disabled = true;
-
-  appendMessage('user', text);
-  chatHistory.push({ role: 'user', content: text });
-
-  const typingId = showTyping();
-
-  try {
-    const response = await callGemini(text);
-    removeTyping(typingId);
-    appendMessage('assistant', response);
-    chatHistory.push({ role: 'assistant', content: response });
-    // Keep history manageable
-    if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
-  } catch (e) {
-    removeTyping(typingId);
-    appendMessage('assistant', `❌ Lỗi: ${e.message}`);
-  }
-
-  document.getElementById('btn-send').disabled = false;
-  input.focus();
-}
-
-// ─── Message rendering ───
-function appendMessage(role, content) {
-  const container = document.getElementById('chat-messages');
-
-  // Remove welcome message if present
-  const welcome = container.querySelector('.welcome-msg');
-  if (welcome) welcome.remove();
-
-  const div = document.createElement('div');
-  div.className = `msg ${role}`;
-
-  const avatarHTML = role === 'user'
-    ? `<div class="msg-avatar"><img src="${currentUser?.photoURL || ''}" alt="" onerror="this.parentElement.textContent='U'"></div>`
-    : `<div class="msg-avatar">AI</div>`;
-
-  const time = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-
-  div.innerHTML = `
-    ${avatarHTML}
-    <div class="msg-content">
-      <div class="msg-bubble">${formatMessage(content, role)}</div>
-      <div class="msg-time">${time}</div>
-    </div>
-  `;
-
-  container.appendChild(div);
-  container.scrollTop = container.scrollHeight;
-}
-
-function formatMessage(content, role) {
-  if (role === 'user') return escapeHtml(content).replace(/\n/g, '<br>');
-
-  let html = '';
-  const parts = content.split(/(```(?:lua|luau|python)?\n[\s\S]*?```)/g);
-
-  parts.forEach(part => {
-    if (part.startsWith('```')) {
-      const match = part.match(/```(\w+)?\n([\s\S]*?)```/);
-      if (match) {
-        const lang = match[1] || 'lua';
-        const code = match[2];
-        const id = 'code_' + Math.random().toString(36).substr(2, 8);
-        html += `
-          <div class="code-block" id="${id}">
-            <div class="code-header">
-              <div class="code-lang">${lang.toUpperCase()}</div>
-              <div class="code-actions">
-                <button class="btn-code-action btn-send-roblox" onclick="sendCodeToRoblox('${id}')">🚀 Gửi Roblox</button>
-                <button class="btn-code-action btn-copy-code" onclick="copyCode('${id}')">📋 Copy</button>
-              </div>
-            </div>
-            <div class="code-body" id="${id}_body">${syntaxHighlight(escapeHtml(code))}</div>
-          </div>`;
+async function watchClip(statusEl){
+  for(let i=0;i<25;i++){
+    await new Promise(r=>setTimeout(r,2500));
+    try{
+      const txt=await navigator.clipboard.readText();
+      if(txt&&txt.startsWith('AIza')&&txt.length>30){
+        document.getElementById('key-inp').value=txt;
+        statusEl.textContent='🎉 Phát hiện key trong clipboard! Nhấn LƯU để xác nhận.';
+        statusEl.style.color='var(--gold)';
+        toast('🎉 Tìm thấy API key! Nhấn LƯU trong popup.');
+        watchingClip=false; return;
       }
-    } else {
-      // Format markdown-like text
-      let text = escapeHtml(part);
-      text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
-      text = text.replace(/\n/g, '<br>');
-      html += `<span>${text}</span>`;
-    }
-  });
-
-  return html;
+    }catch(e){}
+  }
+  watchingClip=false;
 }
 
-function syntaxHighlight(code) {
-  // Basic Lua syntax highlighting
-  return code
-    .replace(/(--[^\n]*)/g, '<span class="cmt">$1</span>')
-    .replace(/\b(local|function|end|if|then|else|elseif|for|do|while|repeat|until|return|and|or|not|in|break|true|false|nil)\b/g, '<span class="kw">$1</span>')
-    .replace(/(["'])((?:(?!\1)[^\\]|\\.)*)(\1)/g, '<span class="str">$1$2$3</span>')
-    .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="num">$1</span>');
-}
-
-function sendCodeToRoblox(blockId) {
-  const bodyEl = document.getElementById(blockId + '_body');
-  if (!bodyEl) return;
-  // Get raw text (strip HTML tags from highlight)
-  const raw = bodyEl.innerText || bodyEl.textContent;
-  sendToRoblox(raw, 'script', raw.substring(0, 60));
-}
-
-function copyCode(blockId) {
-  const bodyEl = document.getElementById(blockId + '_body');
-  if (!bodyEl) return;
-  navigator.clipboard.writeText(bodyEl.innerText || bodyEl.textContent).then(() => {
-    showToast('📋 Đã copy code!');
-  });
-}
-
-// ─── Typing indicator ───
-function showTyping() {
-  const id = 'typing_' + Date.now();
-  const container = document.getElementById('chat-messages');
-  const div = document.createElement('div');
-  div.className = 'msg assistant';
-  div.id = id;
-  div.innerHTML = `
-    <div class="msg-avatar">AI</div>
-    <div class="msg-content">
-      <div class="typing-indicator">
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
-      </div>
-    </div>`;
-  container.appendChild(div);
-  container.scrollTop = container.scrollHeight;
+// ── Typing ──
+function showTyping(){
+  const id='t'+Date.now();
+  const c=document.getElementById('msgs');
+  const d=document.createElement('div');
+  d.className='msg ai';d.id=id;
+  d.innerHTML=`<div class="mavt">AI</div><div class="mcnt"><div class="typing"><div class="td"></div><div class="td"></div><div class="td"></div></div></div>`;
+  c.appendChild(d);c.scrollTop=c.scrollHeight;
   return id;
 }
+function removeTyping(id){ document.getElementById(id)?.remove(); }
 
-function removeTyping(id) {
-  document.getElementById(id)?.remove();
+// ── Utils ──
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
+function useHint(t){ const i=document.getElementById('inp');i.value=t.replace(/^.{2}\s/,'').trim();i.focus();autoResize(i); }
+function copyUID(){ if(!user)return;navigator.clipboard.writeText(user.uid).then(()=>toast('📋 Đã copy User ID!')); }
+function esc(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+function clearHistory(silent=false){
+  hist=[];
+  document.getElementById('hcount').textContent='0';
+  const cfg=MODES[mode];
+  document.getElementById('msgs').innerHTML=`<div class="welcome" id="welcome"><span class="wicon">${cfg.icon}</span><div class="wtitle"><span class="r" id="wtR">${cfg.r}</span><span class="a" id="wtA">${cfg.a}</span></div><div class="wdesc" id="wdesc">${cfg.desc}</div></div>`;
+  if(!silent)toast('🗑 Đã xóa lịch sử!');
 }
-
-// ─── Input helpers ───
-function handleKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
-}
-
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 140) + 'px';
-}
-
-function useHint(el) {
-  const input = document.getElementById('msg-input');
-  input.value = el.textContent.replace(/^[^\s]+\s/, '');
-  input.focus();
-  autoResize(input);
-}
-
-// ─── Plugin Modal ───
-function togglePluginModal() {
-  const modal = document.getElementById('plugin-modal');
-  modal.classList.toggle('open');
-}
-
-// ─── Copy helpers ───
-function copyUID() {
-  if (!currentUser) return;
-  navigator.clipboard.writeText(currentUser.uid).then(() => {
-    showToast('📋 Đã copy User ID!');
-  });
-}
-
-function copyPluginCode() {
-  const el = document.getElementById('plugin-code-display');
-  navigator.clipboard.writeText(el.textContent).then(() => {
-    showToast('📋 Đã copy Plugin Code!');
-  });
-}
-
-// ─── Toast ───
-let toastTimer = null;
-function showToast(msg, isError = false) {
-  const toast = document.getElementById('toast');
-  toast.textContent = msg;
-  toast.className = 'toast show' + (isError ? ' error' : '');
-  if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
-}
-
-// ─── Utility ───
-function escapeHtml(text) {
-  const d = document.createElement('div');
-  d.textContent = text;
-  return d.innerHTML;
-}
-
-// Close modal on overlay click
-document.getElementById('plugin-modal').addEventListener('click', e => {
-  if (e.target === e.currentTarget) togglePluginModal();
-});
-document.getElementById('apikey-modal').addEventListener('click', e => {
-  if (e.target === e.currentTarget) document.getElementById('apikey-modal').classList.remove('open');
-});
-// Auto-show API key modal if key looks default/invalid on load
-window.addEventListener('load', () => {
-  if (!localStorage.getItem('robloxai_gemini_key')) {
-    // Pre-fill with default key
-    document.getElementById('new-apikey-input').value = geminiKey;
-  }
-});
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.addEventListener('click',e=>{if(e.target.classList.contains('overlay'))e.target.classList.remove('open');});
+let tT=null;
+function toast(msg,isErr=0){const el=document.getElementById('toast');el.textContent=msg;el.className='toast show'+(isErr?' err':'');if(tT)clearTimeout(tT);tT=setTimeout(()=>el.classList.remove('show'),3200);}
 </script>
 </body>
 </html>
