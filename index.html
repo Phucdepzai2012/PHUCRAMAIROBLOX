@@ -765,8 +765,10 @@ end</div>
       <button class="btn-modal-close" onclick="document.getElementById('apikey-modal').classList.remove('open')">✕</button>
     </div>
     <div class="modal-body">
+      <div id="apikey-error-info" style="font-size:12px;font-family:'JetBrains Mono',monospace;line-height:1.6;margin-bottom:14px;padding:10px 12px;background:rgba(255,58,58,0.08);border:1px solid rgba(255,58,58,0.2);border-radius:6px;color:var(--red);white-space:pre-wrap;display:none"></div>
       <div style="font-size:14px;line-height:1.7;margin-bottom:20px;color:var(--text)">
         API key hiện tại đã <strong style="color:var(--red)">hết quota free tier</strong>.<br>
+        Key đang dùng: <code id="current-key-display" style="font-size:10px">—</code><br>
         Có 2 cách xử lý:
       </div>
       <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
@@ -818,16 +820,20 @@ const db = firebase.database();
 
 // ─── Gemini Config ───
 const GEMINI_MODELS = [
-  "gemini-1.5-flash-latest",
   "gemini-1.5-flash",
-  "gemini-1.5-pro-latest",
+  "gemini-1.5-flash-8b",
+  "gemini-1.5-pro",
   "gemini-2.0-flash-lite",
+  "gemini-2.0-flash",
 ];
 let currentModelIndex = 0;
-let geminiKey = localStorage.getItem('robloxai_gemini_key') || "AIzaSyBJIjhoVy5vjz32ASzJ6a_2IBIDAkPnl5g";
 
+// Luon doc moi nhat tu localStorage, khong cache vao bien
+function getGeminiKey() {
+  return localStorage.getItem('robloxai_gemini_key') || "AIzaSyBg3HE-IHMkzVg5RRZTrw5QCg-YWup3_jY";
+}
 function getGeminiURL(model) {
-  return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
+  return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${getGeminiKey()}`;
 }
 
 // ─── State ───
@@ -997,7 +1003,7 @@ async function sendToRoblox(code, type = 'script', summary = '') {
   }
 }
 
-// ─── Gemini Chat (with model fallback + retry) ───
+// ─── Gemini Chat (model fallback + robust error handling) ───
 async function callGemini(userMessage) {
   const messages = chatHistory.map(m => ({
     role: m.role === 'assistant' ? 'model' : 'user',
@@ -1011,57 +1017,92 @@ async function callGemini(userMessage) {
     generationConfig: { temperature: 0.7, maxOutputTokens: 4096 }
   };
 
-  // Try each model until one works
+  const errors = [];
+
   for (let i = 0; i < GEMINI_MODELS.length; i++) {
-    const modelIdx = (currentModelIndex + i) % GEMINI_MODELS.length;
-    const model = GEMINI_MODELS[modelIdx];
+    const model = GEMINI_MODELS[i];
+    let res, data;
     try {
-      const res = await fetch(getGeminiURL(model), {
+      res = await fetch(getGeminiURL(model), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
-      const data = await res.json();
-      if (!res.ok) {
-        const msg = data.error?.message || '';
-        const isQuota = msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED') || res.status === 429;
-        if (isQuota) {
-          showToast(`⚠️ Model ${model} hết quota, thử model khác...`);
-          continue; // try next model
-        }
-        // API key invalid
-        if (res.status === 400 || res.status === 403) {
-          showApiKeyModal();
-          throw new Error('API key không hợp lệ. Vui lòng nhập key mới.');
-        }
-        throw new Error(msg || `HTTP ${res.status}`);
-      }
-      // Success — update current model index
-      currentModelIndex = modelIdx;
+      data = await res.json();
+    } catch(networkErr) {
+      errors.push(`${model}: network error`);
+      continue;
+    }
+
+    if (res.ok) {
+      // ✅ SUCCESS
+      currentModelIndex = i;
       document.getElementById('model-badge').textContent = '🤖 ' + model;
       return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Không có phản hồi.';
-    } catch(e) {
-      if (e.message.includes('API key')) throw e;
-      if (i === GEMINI_MODELS.length - 1) throw e;
     }
+
+    const errMsg = data?.error?.message || '';
+    const errCode = data?.error?.code || res.status;
+    const isQuota = res.status === 429 || errMsg.toLowerCase().includes('quota') || errMsg.toLowerCase().includes('resource_exhausted');
+    const isInvalidKey = res.status === 400 || res.status === 403;
+
+    if (isInvalidKey && errMsg.toLowerCase().includes('api key')) {
+      // Key sai → dừng ngay, hiện modal
+      showApiKeyModal(`❌ API key không hợp lệ hoặc bị vô hiệu hóa.
+Lỗi: ${errMsg}`);
+      throw new Error('API key không hợp lệ. Vui lòng nhập key mới trong popup.');
+    }
+
+    if (isQuota) {
+      errors.push(`${model}: hết quota (${errCode})`);
+      showToast(`⚠️ ${model}: hết quota → thử model tiếp...`);
+      continue; // try next model
+    }
+
+    // Other error — stop
+    errors.push(`${model}: ${errMsg || res.status}`);
+    break;
   }
-  // All models exhausted → show API key modal
-  showApiKeyModal();
-  throw new Error('Tất cả model Gemini đều hết quota free tier.\n\n👉 Vui lòng:\n1. Tạo API key mới tại https://aistudio.google.com/app/apikey\n2. Hoặc bật billing tại https://console.cloud.google.com\n3. Nhập key mới vào ô phía trên chat');
+
+  // All failed → show modal with detail
+  const detail = errors.join('\n');
+  showApiKeyModal(`Tất cả model đã thử đều thất bại:\n${detail}\n\n→ Tạo API key mới tại aistudio.google.com hoặc bật billing.`);
+  throw new Error('Hết quota tất cả models. Vui lòng nhập API key mới (nút 🔑 API KEY phía trên).');
 }
 
 // ─── API Key Modal ───
-function showApiKeyModal() {
-  document.getElementById('apikey-modal').classList.add('open');
+function showApiKeyModal(msg) {
+  const modal = document.getElementById('apikey-modal');
+  const info = document.getElementById('apikey-error-info');
+  const keyDisplay = document.getElementById('current-key-display');
+  if (info) {
+    if (msg) {
+      info.textContent = msg;
+      info.style.display = 'block';
+    } else {
+      info.style.display = 'none';
+    }
+  }
+  if (keyDisplay) {
+    const k = getGeminiKey();
+    keyDisplay.textContent = k.substring(0, 10) + '...' + k.slice(-4);
+  }
+  // Pre-fill the input with current key for easy editing
+  const inp = document.getElementById('new-apikey-input');
+  if (inp && !inp.value) inp.value = getGeminiKey();
+  modal.classList.add('open');
 }
 function saveApiKey() {
   const key = document.getElementById('new-apikey-input').value.trim();
-  if (!key.startsWith('AIza')) { showToast('⚠️ Key không hợp lệ (phải bắt đầu bằng AIza)', true); return; }
-  geminiKey = key;
+  if (!key || !key.startsWith('AIza')) {
+    showToast('⚠️ Key không hợp lệ (phải bắt đầu bằng AIza)', true);
+    return;
+  }
   localStorage.setItem('robloxai_gemini_key', key);
   currentModelIndex = 0;
   document.getElementById('apikey-modal').classList.remove('open');
-  showToast('✅ Đã lưu API key mới!');
+  document.getElementById('model-badge').textContent = '🤖 gemini-1.5-flash';
+  showToast('✅ Đã lưu API key mới! Thử gửi tin nhắn lại nhé.');
 }
 
 // ─── Send message ───
