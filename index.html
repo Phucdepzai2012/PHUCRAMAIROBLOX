@@ -8,6 +8,10 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<!-- PptxGenJS - tạo .pptx thật -->
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<!-- docx.js - tạo .docx thật -->
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js"></script>
 <style>
 :root{--bg:#060810;--card:#0f1122;--inp:#0b0d1a;--red:#ff3a3a;--redg:rgba(255,58,58,.3);--cyan:#00ffe0;--cyang:rgba(0,255,224,.2);--gold:#ffc040;--purple:#a78bfa;--green:#34d399;--text:#d0d8f0;--dim:#4a5070;--b:rgba(255,58,58,.18);--bc:rgba(0,255,224,.12);--t:.18s ease}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -233,7 +237,7 @@ code{font-family:'JetBrains Mono',monospace;background:rgba(0,255,224,.08);borde
 
   <div class="tabs">
     <div class="tab roblox active" onclick="setMode('roblox')" id="tab-roblox">🎮 ROBLOX</div>
-    <div class="tab slide" onclick="setMode('slide')" id="tab-slide">📊 SLIDE</div>
+    <div class="tab slide" onclick="setMode('slide')" id="tab-slide">📊 PPTX</div>
     <div class="tab docx" onclick="setMode('docx')" id="tab-docx">📄 WORD</div>
     <div class="tab ai" onclick="setMode('ai')" id="tab-ai">✨ AI CHAT</div>
   </div>
@@ -252,16 +256,18 @@ code{font-family:'JetBrains Mono',monospace;background:rgba(0,255,224,.08);borde
       </div>
       <!-- Slide section -->
       <div class="sbsec" id="sb-slide" style="display:none">
-        <div class="sbtitle">📊 Slide Tools</div>
-        <button class="sbtn p" onclick="downloadSlide()">⬇️ Tải slide .html</button>
-        <button class="sbtn c" onclick="previewSlide()">👁 Xem preview</button>
-        <button class="sbtn g" onclick="openModal('slide-tips')">💡 Gợi ý câu lệnh</button>
+        <div class="sbtitle">📊 PowerPoint Tools</div>
+        <div style="font-size:9px;line-height:1.5;color:var(--dim);margin-bottom:8px;padding:6px 8px;background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.2);border-radius:6px">
+          💡 AI tạo code JS → nhấn <strong style="color:var(--gold)">▶ CHẠY</strong> để tải .pptx thật
+        </div>
+        <button class="sbtn p" onclick="openModal('slide-tips')">💡 Gợi ý câu lệnh</button>
       </div>
       <!-- Docx section -->
       <div class="sbsec" id="sb-docx" style="display:none">
         <div class="sbtitle">📄 Word Tools</div>
-        <button class="sbtn p" onclick="downloadDocx()">⬇️ Tải file .doc</button>
-        <button class="sbtn c" onclick="copyDocx()">📋 Copy HTML</button>
+        <div style="font-size:9px;line-height:1.5;color:var(--dim);margin-bottom:8px;padding:6px 8px;background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.18);border-radius:6px">
+          💡 AI tạo code JS → nhấn <strong style="color:var(--gold)">▶ CHẠY</strong> để tải .docx thật
+        </div>
         <button class="sbtn g" onclick="openModal('docx-tips')">💡 Gợi ý câu lệnh</button>
       </div>
       <!-- AI section -->
@@ -430,34 +436,123 @@ const apiURL=(m,a)=>`https://generativelanguage.googleapis.com/${a}/models/${m}:
 // ── Mode configs ──
 const MODES = {
   roblox:{
-    icon:'🎮', r:'ROBLOX', a:' AI',
-    desc:'Mô tả điều bạn muốn tạo trong Roblox — AI viết code Luau và gửi thẳng vào Studio!',
-    ph:'Ví dụ: Tạo hệ thống inventory, script xe hơi, hiệu ứng lửa...',
-    hints:['🧱 Tạo ngôi nhà','⚔️ Script chiến đấu','💰 Hệ thống tiền','🚗 Xe ô tô','🌟 Particle effects','📦 Inventory','🏆 Leaderboard','🗺️ Tạo map'],
-    sys:`Chuyên gia Roblox Luau. Viết code trong \`\`\`lua\`\`\`. Dùng Instance.new(), game:GetService(). Ngắn gọn, tiếng Việt.`
+    icon:"🎮", r:"ROBLOX", a:" AI",
+    desc:"Mô tả điều bạn muốn tạo trong Roblox — AI viết code Luau và gửi thẳng vào Studio!",
+    ph:"Ví dụ: Tạo hệ thống inventory, script xe hơi, hiệu ứng lửa...",
+    hints:["🧱 Tạo ngôi nhà","⚔️ Script chiến đấu","💰 Hệ thống tiền","🚗 Xe ô tô","🌟 Particle effects","📦 Inventory","🏆 Leaderboard","🗺️ Tạo map"],
+    sys:`Bạn là chuyên gia Roblox Studio và ngôn ngữ Luau. Luôn viết code đầy đủ, chạy được ngay trong Roblox Studio.
+
+QUY TẮC CODE LUAU:
+- Đặt code trong \\`\\`\\`lua ... \\`\\`\\`
+- Dùng game:GetService("ServiceName") để lấy service
+- LocalScript chạy ở client (StarterPlayerScripts, StarterCharacterScripts)
+- Script chạy ở server (ServerScriptService, Workspace)
+- ModuleScript dùng chung
+- Dùng Instance.new("ClassName") để tạo object, gán .Parent cuối cùng
+- Dùng workspace thay game.Workspace
+- RemoteEvent/RemoteFunction đặt trong ReplicatedStorage
+- Luôn thêm pcall() cho code có thể lỗi
+- Luôn print() để debug
+- Comment tiếng Việt cho từng phần
+
+VÍ DỤ TẠO PART:
+\\`\\`\\`lua
+local part = Instance.new("Part")
+part.Size = Vector3.new(10,1,10)
+part.Position = Vector3.new(0,5,0)
+part.Anchored = true
+part.BrickColor = BrickColor.new("Bright red")
+part.Parent = workspace
+print("Đã tạo part!")
+\\`\\`\\`
+
+Giải thích ngắn tiếng Việt trước, rồi code đầy đủ.`
   },
   slide:{
-    icon:'📊', r:'SLIDE', a:' MAKER',
-    desc:'Tạo slide thuyết trình đẹp — HTML/CSS/JS, animation, Chart.js. Tải về mở ngay trên trình duyệt!',
-    ph:'Ví dụ: Tạo 6 slide pitch deck startup AI, theme tối hiện đại...',
-    hints:['🎓 Slide học thuật','💼 Báo cáo công ty','🚀 Pitch startup','📈 Doanh thu','🎨 Portfolio','📚 Bài giảng','🌍 Địa lý','🔬 Khoa học'],
-    sys:`Tạo HTML slide đẹp. LUÔN trả về code đầy đủ trong \`\`\`html\`\`\`.
-Rules: CSS animation mượt, Google Fonts, gradient đẹp. Mỗi slide = div.slide. Nút Prev/Next, keyboard arrows, số trang, nút fullscreen. Theme tối hiện đại. Giải thích ngắn tiếng Việt rồi code.`
+    icon:"📊", r:"PPTX", a:" MAKER",
+    desc:"Tạo file PowerPoint (.pptx) thật sự — mở bằng Microsoft PowerPoint, Google Slides!",
+    ph:"Ví dụ: Tạo 6 slide pitch startup AI với theme xanh đậm...",
+    hints:["🎓 Slide học thuật","💼 Báo cáo công ty","🚀 Pitch startup","📈 Doanh thu Q4","🎨 Portfolio","📚 Bài giảng","🌍 Thuyết trình địa lý","🔬 Báo cáo khoa học"],
+    sys:`Bạn tạo file PowerPoint thật (.pptx) bằng thư viện PptxGenJS.
+LUÔN trả về code JavaScript đầy đủ trong \\`\\`\\`javascript ... \\`\\`\\` — code này sẽ chạy trong trình duyệt để tạo file .pptx.
+
+QUY TẮC BẮT BUỘC:
+1. Dùng biến pptx đã có sẵn (const pptx = new PptxGenJS())
+2. KHÔNG dùng import/require/export
+3. Kết thúc bằng: pptx.writeFile({ fileName: "TenFile.pptx" })
+4. Mỗi slide: const slide = pptx.addSlide()
+5. Text: slide.addText("Nội dung", { x:0.5, y:0.5, w:9, h:1, fontSize:24, bold:true, color:"FFFFFF" })
+6. Shape: slide.addShape(pptx.ShapeType.rect, { x:0, y:0, w:10, h:7.5, fill:{color:"1a1a2e"} })
+7. Màu sắc: dùng hex không có # (ví dụ "FF0000" không phải "#FF0000")
+8. Đơn vị: inch (slide mặc định 10x7.5 inch)
+9. Tạo đủ nội dung cho mỗi slide, không để trống
+10. Có slide tiêu đề, nội dung, kết luận
+
+VÍ DỤ CODE MẪU:
+\\`\\`\\`javascript
+const pptx = new PptxGenJS();
+pptx.layout = "LAYOUT_WIDE";
+
+// Slide 1 - Title
+const s1 = pptx.addSlide();
+s1.addShape(pptx.ShapeType.rect, {x:0,y:0,w:10,h:7.5,fill:{color:"0f0c29"}});
+s1.addText("Tiêu đề Chính", {x:1,y:2.5,w:8,h:1.5,fontSize:40,bold:true,color:"00ffe0",align:"center"});
+s1.addText("Phụ đề ở đây", {x:1,y:4,w:8,h:1,fontSize:20,color:"cccccc",align:"center"});
+
+pptx.writeFile({fileName:"BaoCao.pptx"});
+\\`\\`\\`
+
+Giải thích ngắn tiếng Việt, rồi code JavaScript đầy đủ tạo toàn bộ slide.`
   },
   docx:{
-    icon:'📄', r:'WORD', a:' MAKER',
-    desc:'Tạo tài liệu Word chuyên nghiệp — tải về .doc, mở bằng Microsoft Word, Google Docs!',
-    ph:'Ví dụ: Viết báo cáo thực tập CNTT 10 trang đầy đủ mục lục...',
-    hints:['📝 Báo cáo thực tập','📋 Kế hoạch KD','✉️ Công văn','📄 Hợp đồng','🎓 Đề cương LV','📊 Báo cáo DA','📰 Bài báo','📖 Giáo án'],
-    sys:`Tạo tài liệu Word. LUÔN trả về HTML đầy đủ trong \`\`\`html\`\`\` (lưu thành .doc).
-Rules: h1/h2/h3 cho heading, p cho đoạn, table cho bảng, ul/ol cho danh sách. CSS inline đẹp, font Arial, cỡ chuẩn. Có tiêu đề, mục lục nếu cần. Nội dung đầy đủ chuyên nghiệp. Giải thích ngắn tiếng Việt rồi code.`
+    icon:"📄", r:"DOCX", a:" MAKER",
+    desc:"Tạo file Word (.docx) thật sự — mở bằng Microsoft Word, Google Docs, LibreOffice!",
+    ph:"Ví dụ: Viết báo cáo thực tập CNTT 10 trang đầy đủ mục lục...",
+    hints:["📝 Báo cáo thực tập","📋 Kế hoạch kinh doanh","✉️ Công văn/Thư","📄 Hợp đồng","🎓 Đề cương luận văn","📊 Báo cáo dự án","📰 Bài báo khoa học","📖 Giáo án"],
+    sys:`Bạn tạo file Word thật (.docx) bằng thư viện docx.js.
+LUÔN trả về code JavaScript đầy đủ trong \\`\\`\\`javascript ... \\`\\`\\` — code này chạy trong trình duyệt tạo file .docx.
+
+QUY TẮC BẮT BUỘC:
+1. Dùng: const { Document, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, AlignmentType, Packer } = docx;
+2. Tạo doc: const doc = new Document({ sections: [{ properties: {}, children: [...] }] });
+3. KHÔNG dùng import/require/export
+4. Kết thúc bằng đoạn Packer.toBlob(doc).then(blob => { const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="TenFile.docx"; a.click(); });
+5. Heading: new Paragraph({ text:"Tiêu đề", heading: HeadingLevel.HEADING_1 })
+6. Đoạn thường: new Paragraph({ children: [new TextRun({ text:"Nội dung", size:24 })] })
+7. Bold/Italic: new TextRun({ text:"text", bold:true, italic:true, size:28 })
+8. Căn lề: alignment: AlignmentType.CENTER / LEFT / RIGHT / JUSTIFIED
+
+VÍ DỤ CODE MẪU:
+\\`\\`\\`javascript
+const { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, Packer } = docx;
+
+const doc = new Document({
+  sections: [{
+    properties: {},
+    children: [
+      new Paragraph({ text: "BÁO CÁO THỰC TẬP", heading: HeadingLevel.TITLE, alignment: AlignmentType.CENTER }),
+      new Paragraph({ children: [new TextRun({ text: "Sinh viên: Nguyễn Văn A", size: 24 })] }),
+      new Paragraph({ text: "1. Giới thiệu", heading: HeadingLevel.HEADING_1 }),
+      new Paragraph({ children: [new TextRun({ text: "Nội dung giới thiệu...", size: 24 })] }),
+    ]
+  }]
+});
+
+Packer.toBlob(doc).then(blob => {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "BaoCao.docx"; a.click();
+});
+\\`\\`\\`
+
+Giải thích ngắn tiếng Việt, rồi code JavaScript đầy đủ tạo toàn bộ tài liệu.`
   },
   ai:{
-    icon:'✨', r:'AI', a:' CHAT',
-    desc:'Trợ lý AI đa năng — lập trình, viết lách, phân tích, dịch thuật, toán học...',
-    ph:'Hỏi bất cứ điều gì...',
-    hints:['💻 Code Python','🌐 Dịch Anh-Việt','📖 Tóm tắt','🧮 Giải toán','🎨 Ý tưởng','🔍 Phân tích','✍️ Viết essay','🤔 Giải thích khái niệm'],
-    sys:`Trợ lý AI thông minh, trả lời tiếng Việt, hữu ích và chính xác. Code trong \`\`\`lang\`\`\`.`
+    icon:"✨", r:"AI", a:" CHAT",
+    desc:"Trợ lý AI đa năng — lập trình, viết lách, phân tích, dịch thuật, toán học...",
+    ph:"Hỏi bất cứ điều gì...",
+    hints:["💻 Code Python","🌐 Dịch Anh-Việt","📖 Tóm tắt văn bản","🧮 Giải toán","🎨 Ý tưởng sáng tạo","🔍 Phân tích dữ liệu","✍️ Viết essay","🤔 Giải thích khái niệm"],
+    sys:`Trợ lý AI thông minh, trả lời tiếng Việt, hữu ích và chính xác. Code trong \\`\\`\\`lang ... \\`\\`\\`.`
   }
 };
 
@@ -599,12 +694,49 @@ function renderContent(content,role){
     const id='b'+Math.random().toString(36).substr(2,7);
     const isLua=m[1]&&m[1].toLowerCase()==='lua';
     const isHtml=m[1]&&['html','htm'].includes(m[1].toLowerCase());
+    const isJS=m[1]&&m[1].toLowerCase()==='javascript';
     let acts=`<button class="cact cp" onclick="copyBlock('${id}')">📋</button>`;
-    if(isLua) acts=`<button class="cact rb" onclick="send2Roblox('${id}')">🚀 Roblox</button>`+acts;
-    if(isHtml) acts=`<button class="cact pv" onclick="pvBlock('${id}')">👁 Preview</button><button class="cact dl" onclick="dlBlock('${id}')">⬇️</button>`+acts;
-    html+=`<div class="cblock" id="${id}"><div class="chdr"><div class="clang">${lang}</div><div class="cacts">${acts}</div></div><div class="cbody" id="${id}_body">${syntaxHL(esc(code))}</div></div>`;
+    if(isLua) acts=`<button class="cact rb" onclick="send2Roblox('${id}')">🚀 → Roblox</button>`+acts;
+    if(isHtml) acts=`<button class="cact pv" onclick="pvBlock('${id}')">👁 Preview</button><button class="cact dl" onclick="dlBlock('${id}')">⬇️ HTML</button>`+acts;
+    if(isJS) acts=`<button class="cact rb" onclick="runJS('${id}')" style="background:rgba(255,192,64,.12);border-color:rgba(255,192,64,.5);color:var(--gold)">▶ CHẠY & TẢI FILE</button>`+acts;
+    html+=`<div class="cblock" id="${id}"><div class="chdr"><div class="clang">${lang}</div><div class="cacts">${acts}</div></div><div class="cbody" id="${id}_body">${syntaxHL(esc(code))}</div><div class="run-log" id="${id}_log" style="display:none;padding:8px 12px;background:#0a0a1a;border-top:1px solid var(--bc);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);max-height:80px;overflow-y:auto"></div></div>`;
   });
   return html;
+}
+
+// ── Run JS (for PPTX and DOCX generation) ──
+function runJS(id){
+  const logEl = document.getElementById(id+'_log');
+  logEl.style.display='block';
+  logEl.textContent='⏳ Đang tạo file...';
+  
+  let code = document.getElementById(id+'_body')?.innerText||'';
+  
+  // Inject PptxGenJS instance if slide mode
+  if(mode==='slide'){
+    if(!code.includes('new PptxGenJS')){
+      code = 'const pptx = new PptxGenJS();\n' + code;
+    }
+  }
+  
+  // Inject docx namespace — library exposes as window.docx
+  if(mode==='docx'){
+    // Prepend: make docx global available as destructured
+    code = `const docx = window.docx || {};\n` + code;
+  }
+  
+  try{
+    const fn = new Function(code);
+    fn();
+    logEl.style.color='var(--green)';
+    logEl.textContent='✅ Đang tạo file và tải xuống...';
+    toast('✅ Đang tải file xuống!');
+  }catch(e){
+    logEl.style.color='var(--red)';
+    logEl.textContent='❌ Lỗi: '+e.message+'\n\nHãy hỏi AI sửa lỗi này.';
+    toast('❌ Lỗi chạy code: '+e.message, 1);
+    console.error(e);
+  }
 }
 function prose(t){ return '<span>'+esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\n/g,'<br>')+'</span>'; }
 function syntaxHL(c){ return c.replace(/(--[^\n]*)/g,'<span class="cmt">$1</span>').replace(/\b(local|function|end|if|then|else|elseif|for|do|while|return|and|or|not|in|break|true|false|nil|repeat|until)\b/g,'<span class="kw">$1</span>').replace(/(["'])((?:(?!\1)[^\\]|\\.)*)(\1)/g,'<span class="str">$1$2$3</span>').replace(/\b(\d+(?:\.\d+)?)\b/g,'<span class="num">$1</span>'); }
